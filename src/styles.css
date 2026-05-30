@@ -224,3 +224,277 @@ button {
 .certificateCard h2 {
   margin-bottom: 16px;
 }
+
+.avatarStage {
+  padding: 20px;
+  border-radius: 22px;
+  background: #fffaf2;
+  border: 1px solid #e2d1bd;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  position: relative;
+  width: 140px;
+  height: 240px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatarHead {
+  position: relative;
+  width: 72px;
+  height: 72px;
+  margin-top: 36px;
+  margin-bottom: 6px;
+  z-index: 3;
+  border: 3px solid rgba(42, 33, 24, 0.18);
+}
+
+.face-round {
+  border-radius: 50%;
+}
+
+.face-square {
+  border-radius: 22px;
+}
+
+.avatarHair {
+  position: absolute;
+  top: 18px;
+  z-index: 2;
+  width: 86px;
+  height: 38px;
+  border-radius: 40px 40px 16px 16px;
+  pointer-events: none;
+}
+
+.hair-short {
+  height: 34px;
+}
+
+.hair-long {
+  width: 92px;
+  height: 76px;
+  border-radius: 44px 44px 34px 34px;
+}
+
+.hair-tied::after {
+  content: "";
+  position: absolute;
+  right: -18px;
+  top: 12px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: inherit;
+}
+
+.hair-hat {
+  height: 24px;
+  border-radius: 8px 8px 18px 18px;
+}
+
+.hair-hat::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 18px;
+  width: 110px;
+  height: 12px;
+  border-radius: 999px;
+  background: inherit;
+}
+
+.avatarEye {
+  position: absolute;
+  top: 30px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #2a2118;
+}
+
+.leftEye {
+  left: 22px;
+}
+
+.rightEye {
+  right: 22px;
+}
+
+.avatarMouth {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 10px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(42, 33, 24, 0.4);
+}
+
+.avatarTop {
+  position: relative;
+  z-index: 1;
+  width: 86px;
+  height: 78px;
+  margin-top: 0;
+  border-radius: 22px 22px 16px 16px;
+  border: 3px solid rgba(42, 33, 24, 0.14);
+  overflow: hidden;
+}
+
+.top-apron::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 52px;
+  border-radius: 10px;
+  background: rgba(255, 250, 242, 0.28);
+}
+
+.top-shirt {
+  border-radius: 18px;
+}
+
+.top-workwear {
+  border-radius: 12px 12px 20px 20px;
+}
+
+.avatarBottom {
+  width: 76px;
+  height: 56px;
+  border-radius: 0 0 18px 18px;
+  border: 3px solid rgba(42, 33, 24, 0.14);
+}
+
+.bottom-pants {
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    92% 100%,
+    58% 100%,
+    50% 45%,
+    42% 100%,
+    8% 100%
+  );
+}
+
+.bottom-skirt {
+  clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
+}
+
+.bottom-overall {
+  border-radius: 8px 8px 18px 18px;
+}
+
+.avatarShoes {
+  display: flex;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.avatarShoe {
+  display: block;
+  width: 34px;
+  height: 15px;
+  border-radius: 8px;
+}
+
+.shoes-boots {
+  height: 18px;
+}
+
+.shoes-sneakers {
+  border-radius: 999px;
+}
+
+.shoes-workShoes {
+  height: 16px;
+  border-radius: 4px;
+}
+
+.customGroup {
+  margin-top: 18px;
+}
+
+.customGroup h3 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  color: #6c4b31;
+}
+
+.colorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.colorChip {
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  border-radius: 999px;
+  border: 3px solid transparent;
+}
+
+.colorChip.selected {
+  border-color: #2a2118;
+}
+
+.optionGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.choiceButton {
+  padding: 12px;
+  background: #e5d5c1;
+  color: #2a2118;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.selectedChoice {
+  background: #4a3426;
+  color: white;
+}
+
+.traitOptionList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.traitOptionButton {
+  text-align: left;
+  line-height: 1.5;
+  background: #4a3426;
+}
+
+.resultCard {
+  text-align: left;
+}
+
+.rankRow.rankButton {
+  width: 100%;
+  border: none;
+  background: transparent;
+  color: #2a2118;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.rankRow.rankButton:hover {
+  background: #f3e6d3;
+}

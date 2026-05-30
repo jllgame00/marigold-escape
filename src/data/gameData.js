@@ -21,6 +21,49 @@ export const gameInfo = {
   validCodes: ["TEST", "MG-001", "MG-002", "MG-003", "MARIGOLD"],
 };
 
+export const traitResults = {
+  structure: {
+    title: "짜맞춤 설계자형",
+    statName: "구조 감각",
+    description:
+      "흩어진 조각들이 정확히 맞물리는 순간에 가장 큰 재미를 느끼는 타입입니다. 구조를 이해하고 손으로 조립하는 활동에 강합니다.",
+    recommendedCrafts: ["목공 소품 만들기", "조립형 오브제 만들기"],
+    relatedWorkshop: "목공 공방",
+  },
+  precision: {
+    title: "암호 해석가형",
+    statName: "정밀 해석",
+    description:
+      "작은 흔적 속에서 규칙을 찾아내는 데 흥미를 느끼는 타입입니다. 세밀한 관찰과 정교한 작업이 필요한 공예에 잘 어울립니다.",
+    recommendedCrafts: ["금속 각인 체험", "금속 공예 소품 만들기"],
+    relatedWorkshop: "금속 공예 공방",
+  },
+  color: {
+    title: "문양 수집가형",
+    statName: "색채 감각",
+    description:
+      "색과 패턴, 장식적 요소에 민감하게 반응하는 타입입니다. 나만의 색 조합과 문양을 만드는 체험에 잘 어울립니다.",
+    recommendedCrafts: ["자수 키링 만들기", "섬유 소품 꾸미기"],
+    relatedWorkshop: "자수·섬유 공방",
+  },
+  form: {
+    title: "형태 복원가형",
+    statName: "조형 감각",
+    description:
+      "손으로 만지고, 맞추고, 형태를 완성하는 과정에서 몰입감을 느끼는 타입입니다. 직접 재료를 다루며 결과물을 만들어내는 체험에 적합합니다.",
+    recommendedCrafts: ["도예 체험", "도자기 핸드빌딩", "타일 꾸미기"],
+    relatedWorkshop: "도예 공방",
+  },
+  story: {
+    title: "기록 계승자형",
+    statName: "기록 감성",
+    description:
+      "물건 자체보다 그 안에 담긴 이야기와 의미에 끌리는 타입입니다. 자신의 문장이나 흔적을 남길 수 있는 체험에 잘 어울립니다.",
+    recommendedCrafts: ["한지 엽서 만들기", "캘리그라피 카드 제작"],
+    relatedWorkshop: "한지·캘리그라피 공방",
+  },
+};
+
 export const missions = [
   {
     id: 1,
@@ -38,6 +81,19 @@ export const missions = [
       "조각의 결 방향이 서로 이어지도록 맞추는 것이 핵심입니다.",
       "완성된 문양은 다음 장소로 이동할 방향을 알려줍니다.",
     ],
+    traitQuestion: {
+      question: "방금 미션에서 더 흥미로웠던 부분은?",
+      options: [
+        {
+          label: "조각들이 딱 맞아떨어지는 구조를 찾는 과정",
+          trait: "structure",
+        },
+        {
+          label: "나무의 결이나 질감을 관찰하는 과정",
+          trait: "form",
+        },
+      ],
+    },
   },
   {
     id: 2,
@@ -55,6 +111,19 @@ export const missions = [
       "위에서 아래 순서대로 숫자를 읽으면 암호가 됩니다.",
       "정답은 숫자 3자리입니다.",
     ],
+    traitQuestion: {
+      question: "방금 미션에서 더 끌렸던 순간은?",
+      options: [
+        {
+          label: "망치 자국의 규칙을 찾아 암호를 해독하는 과정",
+          trait: "precision",
+        },
+        {
+          label: "금속 표면의 흔적과 질감을 관찰하는 과정",
+          trait: "form",
+        },
+      ],
+    },
   },
   {
     id: 3,
@@ -72,6 +141,19 @@ export const missions = [
       "문양은 행궁동과 수원화성의 전통 색감과 연결됩니다.",
       "정답은 두 글자입니다.",
     ],
+    traitQuestion: {
+      question: "방금 미션에서 더 좋았던 요소는?",
+      options: [
+        {
+          label: "색실의 순서를 보고 문양을 완성하는 과정",
+          trait: "color",
+        },
+        {
+          label: "문양에 담긴 의미와 이야기를 상상하는 과정",
+          trait: "story",
+        },
+      ],
+    },
   },
   {
     id: 4,
@@ -89,6 +171,19 @@ export const missions = [
       "완성된 균열 선은 공방거리 지도 위의 특정 위치를 가리킵니다.",
       "정답은 지도에 표시된 숫자 하나입니다.",
     ],
+    traitQuestion: {
+      question: "방금 미션에서 더 몰입됐던 부분은?",
+      options: [
+        {
+          label: "깨진 조각을 맞춰 하나의 형태로 복원하는 과정",
+          trait: "form",
+        },
+        {
+          label: "균열 선이 지도처럼 이어지는 규칙을 찾는 과정",
+          trait: "precision",
+        },
+      ],
+    },
   },
   {
     id: 5,
@@ -106,6 +201,19 @@ export const missions = [
       "간판 전체가 아니라 첫 글자의 초성만 사용합니다.",
       "완성되는 단어는 이번 게임의 핵심 주제와 관련이 있습니다.",
     ],
+    traitQuestion: {
+      question: "골목을 탐험하며 더 눈에 들어왔던 것은?",
+      options: [
+        {
+          label: "간판, 타일, 조명처럼 시각적으로 보이는 요소",
+          trait: "color",
+        },
+        {
+          label: "골목에 남아 있는 이야기와 흔적",
+          trait: "story",
+        },
+      ],
+    },
   },
   {
     id: 6,
@@ -123,5 +231,18 @@ export const missions = [
       "이 문장은 장인이 기록을 숨긴 이유와 연결됩니다.",
       "띄어쓰기는 크게 중요하지 않습니다. 핵심 문장을 입력하세요.",
     ],
+    traitQuestion: {
+      question: "마지막 기록을 완성하며 더 인상 깊었던 것은?",
+      options: [
+        {
+          label: "흩어진 단서들이 하나의 구조로 연결되는 순간",
+          trait: "structure",
+        },
+        {
+          label: "누군가의 기술이 기록으로 이어진다는 메시지",
+          trait: "story",
+        },
+      ],
+    },
   },
 ];

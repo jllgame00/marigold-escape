@@ -1,22 +1,12 @@
 import { useEffect, useState } from "react";
-import { gameInfo, missions, traitResults } from "./data/gameData";
+import { gameInfo, missions } from "./data/gameData";
 import { dummyLeaderboard } from "./data/leaderboardData";
 import { formatTime, getClearTitle, getHintEnding } from "./utils/timeUtils";
+import heroImg from "./assets/hero.png";
 import "./styles.css";
 
-const defaultAvatar = {
-  skinColor: "#f1c27d",
-  hairStyle: "short",
-  hairColor: "#3b2a1f",
-  faceType: "round",
-  topStyle: "apron",
-  topColor: "#8b5e3c",
-  bottomStyle: "pants",
-  bottomColor: "#3d405b",
-  shoesStyle: "boots",
-  shoesColor: "#2f2f2f",
-  tool: "woodHammer",
-};
+const SAVE_KEY = "royalLetterEscapeSave";
+const OLD_SAVE_KEY = "marigoldEscapeSave";
 
 const defaultTraits = {
   structure: 0,
@@ -26,108 +16,90 @@ const defaultTraits = {
   story: 0,
 };
 
-const colorOptions = {
-  skin: ["#f1c27d", "#e0ac69", "#c68642", "#8d5524", "#f7d6bf"],
-  hair: ["#2b1b12", "#3b2a1f", "#6b3f22", "#d6a15f", "#1f1f1f"],
-  clothes: ["#8b5e3c", "#3d405b", "#7d5738", "#6f8f72", "#b76e79"],
-  pants: ["#3d405b", "#2f2f2f", "#6c4b31", "#5d6d7e", "#7b6d5f"],
-  shoes: ["#2f2f2f", "#5a3e2b", "#6b4f3a", "#1f2933", "#8b5e3c"],
+const workshopRecommendations = {
+  1: {
+    title: "규방공예 추천형",
+    workshop: "규방공예 / 색실·매듭 공방",
+    statName: "색실 관찰 감각",
+    description:
+      "끊어진 매듭의 색실을 가장 빠르게 파악했습니다. 색, 실, 장식처럼 섬세한 시각 단서에 강한 타입입니다.",
+    recommendedCrafts: [
+      "매듭 팔찌 만들기",
+      "색실 장식 만들기",
+      "규방공예 소품 체험",
+    ],
+  },
+  2: {
+    title: "종이꽃 해석형",
+    workshop: "종이노리 / 종이 공방",
+    statName: "종이 단서 해석",
+    description:
+      "종이꽃의 꽃잎 수와 중심 장식을 빠르게 비교했습니다. 종이, 서찰, 엽서처럼 이야기와 형태가 함께 담긴 공예에 잘 어울립니다.",
+    recommendedCrafts: ["종이꽃 만들기", "한지 엽서 만들기", "서찰 카드 제작"],
+  },
+  3: {
+    title: "향기도예 감식형",
+    workshop: "향기도예 / 도예 공방",
+    statName: "향과 문양 감식",
+    description:
+      "깨진 향 도자기의 조건을 빠르게 구분했습니다. 형태, 향, 문양을 비교하며 물건의 차이를 읽는 데 강한 타입입니다.",
+    recommendedCrafts: [
+      "도자기 핸드빌딩",
+      "향 도자기 만들기",
+      "타일 문양 꾸미기",
+    ],
+  },
+  4: {
+    title: "초상 복원형",
+    workshop: "초상 / 엽서 / 그림 조각 체험",
+    statName: "장면 복원 감각",
+    description:
+      "잘린 초상 조각을 빠르게 해석했습니다. 흩어진 장면을 맞추고, 보이지 않던 맥락을 복원하는 데 강한 타입입니다.",
+    recommendedCrafts: ["엽서 콜라주", "그림 조각 맞추기", "투명 필름 아트"],
+  },
+  5: {
+    title: "장신구 암호형",
+    workshop: "장신구 공방",
+    statName: "숫자 조합 감각",
+    description:
+      "이전 단서의 숫자를 빠르게 조합해 약속 팔찌의 비밀번호를 풀었습니다. 각인, 장신구, 기념품 제작 체험에 잘 어울립니다.",
+    recommendedCrafts: ["팔찌 만들기", "금속 각인 체험", "약속 증표 만들기"],
+  },
 };
 
-const toolLabels = {
-  woodHammer: "나무망치",
-  metalChisel: "금속 끌",
-  needle: "자수 바늘",
-  clayKnife: "도예 흙손",
-  brush: "붓",
-};
+function getFastestWorkshop(missionTimes) {
+  const entries = Object.entries(missionTimes)
+    .map(([missionId, seconds]) => [Number(missionId), seconds])
+    .filter(([missionId]) => missionId >= 1 && missionId <= 5);
 
-function CharacterPreview({ avatar }) {
-  return (
-    <div className="avatarStage">
-      <div className="avatar">
-        <div
-          className={`avatarHair hair-${avatar.hairStyle}`}
-          style={{ backgroundColor: avatar.hairColor }}
-        />
-        <div
-          className={`avatarHead face-${avatar.faceType}`}
-          style={{ backgroundColor: avatar.skinColor }}
-        >
-          <span className="avatarEye leftEye" />
-          <span className="avatarEye rightEye" />
-          <span className="avatarMouth" />
-        </div>
-        <div
-          className={`avatarTop top-${avatar.topStyle}`}
-          style={{ backgroundColor: avatar.topColor }}
-        />
-        <div
-          className={`avatarBottom bottom-${avatar.bottomStyle}`}
-          style={{ backgroundColor: avatar.bottomColor }}
-        />
-        <div className="avatarShoes">
-          <span
-            className={`avatarShoe shoes-${avatar.shoesStyle}`}
-            style={{ backgroundColor: avatar.shoesColor }}
-          />
-          <span
-            className={`avatarShoe shoes-${avatar.shoesStyle}`}
-            style={{ backgroundColor: avatar.shoesColor }}
-          />
-        </div>
-      </div>
-      <p className="smallText">선택 도구: {toolLabels[avatar.tool]}</p>
-    </div>
-  );
+  if (entries.length === 0) {
+    return {
+      title: "서찰 조사관형",
+      workshop: "공방거리 종합 체험",
+      statName: "종합 추리 감각",
+      description:
+        "여러 단서를 균형 있게 따라간 조사관입니다. 공방거리의 다양한 체험을 함께 둘러보는 코스가 잘 어울립니다.",
+      recommendedCrafts: ["종이꽃 만들기", "매듭 소품 만들기", "도예 체험"],
+    };
+  }
+
+  entries.sort((a, b) => a[1] - b[1]);
+  const fastestMissionId = entries[0][0];
+
+  return workshopRecommendations[fastestMissionId];
 }
 
-function ColorPicker({ label, colors, selectedColor, onSelect }) {
-  return (
-    <div className="customGroup">
-      <h3>{label}</h3>
-      <div className="colorRow">
-        {colors.map((color) => (
-          <button
-            key={color}
-            type="button"
-            className={`colorChip ${selectedColor === color ? "selected" : ""}`}
-            style={{ backgroundColor: color }}
-            onClick={() => onSelect(color)}
-            aria-label={`${label} ${color}`}
-          />
-        ))}
-      </div>
-    </div>
-  );
+function sanitizeScreen(screen) {
+  const legacyScreens = ["customize", "story"];
+  if (legacyScreens.includes(screen)) return "teaser";
+  return screen || "landing";
 }
 
-function OptionButtons({ label, value, options, onSelect }) {
-  return (
-    <div className="customGroup">
-      <h3>{label}</h3>
-      <div className="optionGrid">
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            className={`choiceButton ${
-              value === option.value ? "selectedChoice" : ""
-            }`}
-            onClick={() => onSelect(option.value)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function getTopTraitKey(traits) {
-  const entries = Object.entries(traits);
-  const sorted = entries.sort((a, b) => b[1] - a[1]);
-  return sorted[0]?.[0] || "story";
+function clampMissionIndex(index) {
+  if (!Number.isInteger(index)) return 0;
+  if (index < 0) return 0;
+  if (index >= missions.length) return 0;
+  return index;
 }
 
 function App() {
@@ -144,31 +116,55 @@ function App() {
   const [clearTimeSeconds, setClearTimeSeconds] = useState(null);
   const [now, setNow] = useState(Date.now());
   const [isLoaded, setIsLoaded] = useState(false);
-  const [avatar, setAvatar] = useState(defaultAvatar);
   const [traits, setTraits] = useState(defaultTraits);
+  const [missionStartTime, setMissionStartTime] = useState(null);
+  const [missionTimes, setMissionTimes] = useState({});
   const [selectedRecord, setSelectedRecord] = useState(null);
 
-  const currentMission = missions[missionIndex];
-  const topTraitKey = getTopTraitKey(traits);
-  const topTraitResult = traitResults[topTraitKey];
+  const currentMission = missions[missionIndex] || missions[0];
+  const workshopResult = getFastestWorkshop(missionTimes);
 
   useEffect(() => {
-    const saved = localStorage.getItem("marigoldEscapeSave");
+    if (import.meta.env.DEV) {
+      localStorage.removeItem(SAVE_KEY);
+      localStorage.removeItem(OLD_SAVE_KEY);
+
+      setScreen("landing");
+      setInputCode("");
+      setTeamName("");
+      setMissionIndex(0);
+      setAnswer("");
+      setOpenedHints([]);
+      setHintCount(0);
+      setPieces([]);
+      setMessage("");
+      setStartTime(null);
+      setClearTimeSeconds(null);
+      setTraits(defaultTraits);
+      setMissionStartTime(null);
+      setMissionTimes({});
+      setSelectedRecord(null);
+      setIsLoaded(true);
+      return;
+    }
+
+    const saved = localStorage.getItem(SAVE_KEY);
 
     if (saved) {
       const data = JSON.parse(saved);
 
-      setScreen(data.screen || "landing");
+      setScreen(sanitizeScreen(data.screen));
       setInputCode(data.inputCode || "");
       setTeamName(data.teamName || "");
-      setMissionIndex(data.missionIndex || 0);
+      setMissionIndex(clampMissionIndex(data.missionIndex));
       setOpenedHints(data.openedHints || []);
       setHintCount(data.hintCount || 0);
       setPieces(data.pieces || []);
       setStartTime(data.startTime || null);
       setClearTimeSeconds(data.clearTimeSeconds || null);
-      setAvatar(data.avatar || defaultAvatar);
       setTraits(data.traits || defaultTraits);
+      setMissionStartTime(data.missionStartTime || null);
+      setMissionTimes(data.missionTimes || {});
     }
 
     setIsLoaded(true);
@@ -176,6 +172,7 @@ function App() {
 
   useEffect(() => {
     if (!isLoaded) return;
+    if (import.meta.env.DEV) return;
 
     const saveData = {
       screen,
@@ -187,11 +184,12 @@ function App() {
       pieces,
       startTime,
       clearTimeSeconds,
-      avatar,
       traits,
+      missionStartTime,
+      missionTimes,
     };
 
-    localStorage.setItem("marigoldEscapeSave", JSON.stringify(saveData));
+    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
   }, [
     isLoaded,
     screen,
@@ -203,8 +201,9 @@ function App() {
     pieces,
     startTime,
     clearTimeSeconds,
-    avatar,
     traits,
+    missionStartTime,
+    missionTimes,
   ]);
 
   useEffect(() => {
@@ -220,18 +219,13 @@ function App() {
       ? Math.floor((now - startTime) / 1000)
       : clearTimeSeconds || 0;
 
-  const updateAvatar = (key, value) => {
-    setAvatar((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
-
   const handleCodeSubmit = () => {
     const normalizedCode = inputCode.trim().toUpperCase();
 
     if (!gameInfo.validCodes.includes(normalizedCode)) {
-      setMessage("입장 코드가 올바르지 않습니다.");
+      setMessage(
+        "입장 코드가 올바르지 않습니다. 서찰의 봉인을 다시 확인해주세요.",
+      );
       return;
     }
 
@@ -241,16 +235,19 @@ function App() {
 
   const handleTeamSubmit = () => {
     if (teamName.trim().length < 2) {
-      setMessage("팀명을 2글자 이상 입력해주세요.");
+      setMessage("조사관 이름은 2글자 이상 입력해주세요.");
       return;
     }
 
     setMessage("");
-    setScreen("customize");
+    setScreen("teaser");
   };
 
   const startAdventure = () => {
-    setStartTime(Date.now());
+    const nowTime = Date.now();
+
+    setStartTime(nowTime);
+    setMissionStartTime(nowTime);
     setScreen("mission");
   };
 
@@ -276,7 +273,9 @@ function App() {
     const correctAnswer = normalizeAnswer(currentMission.answer);
 
     if (userAnswer !== correctAnswer) {
-      setMessage("정답이 아닙니다. 단서와 힌트를 다시 확인해보세요.");
+      setMessage(
+        "아직 진실에 닿지 못했습니다. 단서와 힌트를 다시 확인해보세요.",
+      );
       return;
     }
 
@@ -284,16 +283,20 @@ function App() {
       ? pieces
       : [...pieces, currentMission.piece];
 
+    const solvedAt = Date.now();
+    const spentSeconds = missionStartTime
+      ? Math.max(1, Math.floor((solvedAt - missionStartTime) / 1000))
+      : 0;
+
+    setMissionTimes((prev) => ({
+      ...prev,
+      [currentMission.id]: spentSeconds,
+    }));
+
     setPieces(nextPieces);
     setAnswer("");
     setMessage("");
-
-    if (missionIndex + 1 >= missions.length) {
-      setScreen("trait");
-      return;
-    }
-
-    setScreen("trait");
+    setScreen("piece");
   };
 
   const selectTrait = (traitKey) => {
@@ -316,12 +319,14 @@ function App() {
     }
 
     setMissionIndex(missionIndex + 1);
+    setMissionStartTime(Date.now());
     setMessage("");
     setScreen("mission");
   };
 
   const resetGame = () => {
-    localStorage.removeItem("marigoldEscapeSave");
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(OLD_SAVE_KEY);
 
     setScreen("landing");
     setInputCode("");
@@ -334,8 +339,10 @@ function App() {
     setMessage("");
     setStartTime(null);
     setClearTimeSeconds(null);
-    setAvatar(defaultAvatar);
     setTraits(defaultTraits);
+    setMissionStartTime(null);
+    setMissionTimes({});
+    setSelectedRecord(null);
   };
 
   const myRecord =
@@ -344,8 +351,7 @@ function App() {
           teamName,
           clearTimeSeconds,
           hintCount,
-          traitTitle: topTraitResult.title,
-          avatar,
+          traitTitle: workshopResult.title,
         }
       : null;
 
@@ -356,8 +362,8 @@ function App() {
 
   if (!isLoaded) {
     return (
-      <main className="page">
-        <p>불러오는 중...</p>
+      <main className="page centerPage">
+        <p>서찰을 여는 중...</p>
       </main>
     );
   }
@@ -365,14 +371,34 @@ function App() {
   if (screen === "landing") {
     return (
       <main className="page">
-        <section className="hero">
-          <p className="eyebrow">Marigold Outdoor Escape</p>
-          <h1>{gameInfo.title}</h1>
-          <p>{gameInfo.subtitle}</p>
+        <section className="hero heroVisual">
+          <img
+            className="heroImage"
+            src={heroImg}
+            alt="왕 B, 왕비 후보 1, 왕비 후보 2"
+          />
+          <div className="heroOverlay" />
+          <div className="heroContent">
+            <p className="eyebrow">궁중 공방 미스터리 야외 방탈출</p>
+            <h1>{gameInfo.title}</h1>
+            <p className="heroSubtitle">{gameInfo.subtitle}</p>
+            <p className="heroCopy">
+              어릴 적 약속한 두 사람.
+              <br />
+              그러나 궁은 다른 선택을 원했다.
+            </p>
+
+            <div className="royalStatRow">
+              <span className="royalStat">⏳ {gameInfo.playTime}</span>
+              <span className="royalStat">👥 {gameInfo.players}</span>
+              <span className="royalStat">📍 행궁동 공방거리</span>
+            </div>
+          </div>
         </section>
 
         <section className="card">
-          <h2>플레이 안내</h2>
+          <p className="sectionLabel">Investigation Guide</p>
+          <h2>조사 안내</h2>
           <ul>
             <li>예상 시간: {gameInfo.playTime}</li>
             <li>권장 인원: {gameInfo.players}</li>
@@ -381,7 +407,8 @@ function App() {
         </section>
 
         <section className="card">
-          <h2>키트 구성품</h2>
+          <p className="sectionLabel">Kit Contents</p>
+          <h2>봉투 속 단서</h2>
           <ul>
             {gameInfo.kitItems.map((item) => (
               <li key={item}>{item}</li>
@@ -389,14 +416,28 @@ function App() {
           </ul>
         </section>
 
-        <section className="card warning">
-          <h2>주의사항</h2>
-          <p>길을 건널 때는 스마트폰을 보지 말고 주변을 확인해주세요.</p>
-          <p>매장 영업을 방해하지 않도록 외부 단서 중심으로 진행해주세요.</p>
-          <p>단서가 보이지 않을 경우 힌트를 사용해주세요.</p>
+        <section className="card">
+          <p className="sectionLabel">Clue Preview</p>
+          <h2>흔들리는 혼례의 단서</h2>
+          <div className="pieceGrid">
+            <span className="piece">끊어진 매듭</span>
+            <span className="piece">꽃잎 속 서찰</span>
+            <span className="piece">깨진 향 도자기</span>
+            <span className="piece">잘린 초상</span>
+            <span className="piece">사라진 팔찌</span>
+            <span className="piece locked">닫힌 진실</span>
+          </div>
         </section>
 
-        <button onClick={() => setScreen("code")}>시작하기</button>
+        <section className="card warning">
+          <p className="sectionLabel">Notice</p>
+          <h2>조사관 주의사항</h2>
+          <p>길을 건널 때는 스마트폰을 보지 말고 주변을 확인해주세요.</p>
+          <p>매장 영업을 방해하지 않도록 외부 단서 중심으로 진행해주세요.</p>
+          <p>막히는 구간에서는 힌트를 사용해도 기록은 계속 이어집니다.</p>
+        </section>
+
+        <button onClick={() => setScreen("code")}>조사 시작하기</button>
       </main>
     );
   }
@@ -404,16 +445,17 @@ function App() {
   if (screen === "code") {
     return (
       <main className="page">
+        <p className="eyebrow">Sealed Letter</p>
         <h1>입장 코드 입력</h1>
-        <p>봉투 안쪽 카드에 적힌 입장 코드를 입력해주세요.</p>
+        <p>봉인된 서찰을 열기 위해 키트 안쪽의 입장 코드를 입력하세요.</p>
 
         <input
           value={inputCode}
           onChange={(e) => setInputCode(e.target.value)}
-          placeholder="예: MG-001"
+          placeholder="예: ROYAL-001"
         />
 
-        <button onClick={handleCodeSubmit}>입장하기</button>
+        <button onClick={handleCodeSubmit}>서찰 열기</button>
 
         <button
           className="secondaryButton"
@@ -426,7 +468,7 @@ function App() {
         </button>
 
         <p className="smallText">
-          코드가 없다면 메리골드에서 야외방탈출 키트를 구매해주세요.
+          테스트 코드는 TEST 또는 ROYAL을 사용할 수 있습니다.
         </p>
 
         {message && <p className="message">{message}</p>}
@@ -437,16 +479,17 @@ function App() {
   if (screen === "team") {
     return (
       <main className="page">
-        <h1>팀명 입력</h1>
-        <p>오늘의 팀 이름을 정해주세요. 클리어 후 랭킹에 표시됩니다.</p>
+        <p className="eyebrow">Investigator Name</p>
+        <h1>조사관 이름</h1>
+        <p>혼례의 진실을 밝힐 조사관 이름 또는 팀명을 남겨주세요.</p>
 
         <input
           value={teamName}
           onChange={(e) => setTeamName(e.target.value)}
-          placeholder="예: 수작왕"
+          placeholder="예: 서찰단"
         />
 
-        <button onClick={handleTeamSubmit}>다음</button>
+        <button onClick={handleTeamSubmit}>티저 영상 보기</button>
 
         <button
           className="secondaryButton"
@@ -459,7 +502,8 @@ function App() {
         </button>
 
         <p className="smallText">
-          실명이나 개인정보는 입력하지 않는 것을 권장합니다.
+          클리어 인증서와 랭킹에 표시됩니다. 개인정보는 입력하지 않는 것을
+          권장합니다.
         </p>
 
         {message && <p className="message">{message}</p>}
@@ -467,172 +511,51 @@ function App() {
     );
   }
 
-  if (screen === "customize") {
+  if (screen === "teaser") {
     return (
       <main className="page">
-        <h1>장인 캐릭터 만들기</h1>
-        <p>공방거리 탐험에 사용할 나만의 장인 캐릭터를 만들어보세요.</p>
+        <p className="eyebrow">Prologue Teaser</p>
+        <h1>혼례 전날, 진실은 아직 닫혀 있다</h1>
 
-        <CharacterPreview avatar={avatar} />
-
-        <section className="card">
-          <h2>외형 선택</h2>
-
-          <ColorPicker
-            label="피부색"
-            colors={colorOptions.skin}
-            selectedColor={avatar.skinColor}
-            onSelect={(color) => updateAvatar("skinColor", color)}
-          />
-
-          <OptionButtons
-            label="얼굴 형태"
-            value={avatar.faceType}
-            options={[
-              { label: "둥근 얼굴", value: "round" },
-              { label: "각진 얼굴", value: "square" },
-            ]}
-            onSelect={(value) => updateAvatar("faceType", value)}
-          />
-
-          <OptionButtons
-            label="머리 형태"
-            value={avatar.hairStyle}
-            options={[
-              { label: "짧은 머리", value: "short" },
-              { label: "긴 머리", value: "long" },
-              { label: "묶은 머리", value: "tied" },
-              { label: "모자", value: "hat" },
-            ]}
-            onSelect={(value) => updateAvatar("hairStyle", value)}
-          />
-
-          <ColorPicker
-            label="머리색"
-            colors={colorOptions.hair}
-            selectedColor={avatar.hairColor}
-            onSelect={(color) => updateAvatar("hairColor", color)}
-          />
+        <section className="teaserPanel">
+          <video
+            className="teaserVideo"
+            src="/teaser.mp4"
+            poster="/teaser-poster.png"
+            controls
+            playsInline
+          >
+            사용 중인 브라우저에서 영상을 재생할 수 없습니다.
+          </video>
         </section>
 
         <section className="card">
-          <h2>의상 선택</h2>
-
-          <OptionButtons
-            label="상의"
-            value={avatar.topStyle}
-            options={[
-              { label: "앞치마", value: "apron" },
-              { label: "셔츠", value: "shirt" },
-              { label: "작업복", value: "workwear" },
-            ]}
-            onSelect={(value) => updateAvatar("topStyle", value)}
-          />
-
-          <ColorPicker
-            label="상의색"
-            colors={colorOptions.clothes}
-            selectedColor={avatar.topColor}
-            onSelect={(color) => updateAvatar("topColor", color)}
-          />
-
-          <OptionButtons
-            label="하의"
-            value={avatar.bottomStyle}
-            options={[
-              { label: "바지", value: "pants" },
-              { label: "긴 치마", value: "skirt" },
-              { label: "작업복 하의", value: "overall" },
-            ]}
-            onSelect={(value) => updateAvatar("bottomStyle", value)}
-          />
-
-          <ColorPicker
-            label="하의색"
-            colors={colorOptions.pants}
-            selectedColor={avatar.bottomColor}
-            onSelect={(color) => updateAvatar("bottomColor", color)}
-          />
-
-          <OptionButtons
-            label="신발"
-            value={avatar.shoesStyle}
-            options={[
-              { label: "부츠", value: "boots" },
-              { label: "운동화", value: "sneakers" },
-              { label: "작업화", value: "workShoes" },
-            ]}
-            onSelect={(value) => updateAvatar("shoesStyle", value)}
-          />
-
-          <ColorPicker
-            label="신발색"
-            colors={colorOptions.shoes}
-            selectedColor={avatar.shoesColor}
-            onSelect={(color) => updateAvatar("shoesColor", color)}
-          />
-        </section>
-
-        <section className="card">
-          <h2>시작 도구</h2>
-          <OptionButtons
-            label="장인의 도구"
-            value={avatar.tool}
-            options={[
-              { label: "나무망치", value: "woodHammer" },
-              { label: "금속 끌", value: "metalChisel" },
-              { label: "자수 바늘", value: "needle" },
-              { label: "도예 흙손", value: "clayKnife" },
-              { label: "붓", value: "brush" },
-            ]}
-            onSelect={(value) => updateAvatar("tool", value)}
-          />
-        </section>
-
-        <button onClick={() => setScreen("story")}>캐릭터 완성</button>
-
-        <button
-          className="secondaryButton"
-          onClick={() => {
-            setMessage("");
-            setScreen("team");
-          }}
-        >
-          팀명 다시 입력하기
-        </button>
-      </main>
-    );
-  }
-
-  if (screen === "story") {
-    return (
-      <main className="page">
-        <h1>프롤로그</h1>
-
-        <div className="videoBox">
-          <p>사라진 장인의 기록</p>
-        </div>
-
-        <section className="card">
+          <p className="sectionLabel">Prologue</p>
+          <h2>왕비 후보의 서찰</h2>
           <p>
-            오래전 공방거리에는 네 개의 조각이 흩어져 있었다. 메리골드에서
-            발견된 봉투는 그 조각들을 다시 이어줄 단서였다.
+            왕 B와 왕비 후보 1은 어릴 적부터 이어진 약속을 간직한 사이였다.
+            그러나 궁은 또 다른 후보를 원했고, 혼례를 앞둔 어느 날 수상한
+            단서들이 하나씩 도착하기 시작한다.
           </p>
-          <p>봉투 속 물건과 거리의 흔적을 따라 마지막 암호를 찾아보자.</p>
+          <p>
+            끊어진 매듭, 꽃잎 속 서찰, 깨진 향, 함께 있는 초상, 사라진 팔찌.
+            왕의 마음은 정말 변한 것인가.
+          </p>
         </section>
 
-        <CharacterPreview avatar={avatar} />
+        <section className="card">
+          <p className="sectionLabel">Mission Objective</p>
+          <h2>조사 목표</h2>
+          <p>
+            행궁동 공방거리 곳곳에 남겨진 단서를 따라가며, 혼례 전날 닫혀 있던
+            진실을 밝혀내세요.
+          </p>
+        </section>
 
-        <button onClick={startAdventure}>탐험 시작</button>
+        <button onClick={startAdventure}>단서를 따라가기</button>
 
-        <button
-          className="secondaryButton"
-          onClick={() => {
-            setMessage("");
-            setScreen("customize");
-          }}
-        >
-          캐릭터 다시 만들기
+        <button className="secondaryButton" onClick={() => setScreen("team")}>
+          조사관 이름 다시 입력하기
         </button>
       </main>
     );
@@ -643,7 +566,7 @@ function App() {
       <main className="page">
         <header className="missionHeader">
           <span>
-            Mission {missionIndex + 1} / {missions.length}
+            단서 {missionIndex + 1} / {missions.length}
           </span>
           <span>{formatTime(elapsedSeconds)}</span>
         </header>
@@ -651,29 +574,35 @@ function App() {
         <h1>{currentMission.title}</h1>
 
         <section className="card">
-          <h2>스토리</h2>
+          <p className="sectionLabel">Case Record</p>
+          <h2>사건 기록</h2>
           <p>{currentMission.story}</p>
         </section>
 
         <section className="card">
+          <p className="sectionLabel">Location Guide</p>
           <h2>이동 안내</h2>
           <p>{currentMission.locationGuide}</p>
         </section>
 
-        <section className="card">
-          <h2>문제</h2>
+        <section className="card answerCard">
+          <p className="sectionLabel">Investigation Question</p>
+          <h2>조사 문제</h2>
           <p>{currentMission.question}</p>
 
-          <input
-            value={answer}
-            onChange={(e) => setAnswer(e.target.value)}
-            placeholder="정답 입력"
-          />
+          <div className="answerBox">
+            <input
+              value={answer}
+              onChange={(e) => setAnswer(e.target.value)}
+              placeholder="정답을 입력하세요"
+            />
 
-          <button onClick={submitAnswer}>정답 제출</button>
+            <button onClick={submitAnswer}>단서 확인</button>
+          </div>
         </section>
 
-        <section className="card">
+        <section className="card hintCard">
+          <p className="sectionLabel">Hint</p>
           <h2>힌트</h2>
 
           {currentMission.hints.map((hint, index) => (
@@ -694,7 +623,7 @@ function App() {
           className="secondaryButton"
           onClick={() => setScreen("progress")}
         >
-          진행 상황 보기
+          단서첩 보기
         </button>
 
         {message && <p className="message">{message}</p>}
@@ -707,10 +636,11 @@ function App() {
 
     return (
       <main className="page centerPage">
-        <p className="eyebrow">Craft Tendency</p>
-        <h1>방금 미션에서</h1>
+        <p className="eyebrow">Investigation Tendency</p>
+        <h1>방금 단서에서</h1>
 
         <section className="card">
+          <p className="sectionLabel">Choice Record</p>
           <h2>{traitQuestion.question}</h2>
           <div className="traitOptionList">
             {traitQuestion.options.map((option) => (
@@ -726,7 +656,7 @@ function App() {
         </section>
 
         <p className="smallText">
-          선택 결과는 마지막에 나의 공방 성향 카드로 이어집니다.
+          선택 결과는 마지막에 나의 조사 성향 카드로 이어집니다.
         </p>
       </main>
     );
@@ -735,13 +665,13 @@ function App() {
   if (screen === "piece") {
     return (
       <main className="page centerPage">
-        <p className="eyebrow">Mission Clear</p>
+        <p className="eyebrow">Clue Secured</p>
         <h1>{currentMission.piece} 획득</h1>
-        <p>공방거리의 숨겨진 조각 하나를 찾아냈습니다.</p>
+        <p>혼례의 진실에 가까워지는 단서 하나를 확보했습니다.</p>
         <button onClick={goNextMission}>
           {missionIndex + 1 >= missions.length
-            ? "최종 결과 보기"
-            : "다음 미션으로"}
+            ? "최종 기록 확인하기"
+            : "다음 단서로"}
         </button>
       </main>
     );
@@ -750,11 +680,13 @@ function App() {
   if (screen === "progress") {
     return (
       <main className="page">
-        <h1>진행 상황</h1>
+        <p className="eyebrow">Clue Note</p>
+        <h1>단서첩</h1>
 
         <section className="card">
+          <p className="sectionLabel">Progress</p>
           <p>
-            진행률 {missionIndex + 1} / {missions.length}
+            조사 진행률 {missionIndex + 1} / {missions.length}
           </p>
           <div className="progressBar">
             <div
@@ -767,7 +699,40 @@ function App() {
         </section>
 
         <section className="card">
-          <h2>획득한 조각</h2>
+          <p className="sectionLabel">Craft Street Map</p>
+          <h2>공방거리 조사 지도</h2>
+          <div className="clueMap">
+            {missions.map((mission, index) => {
+              const isCleared = pieces.includes(mission.piece);
+              const isCurrent = index === missionIndex;
+
+              return (
+                <div
+                  key={mission.id}
+                  className={`clueMapItem ${
+                    isCleared ? "cleared" : isCurrent ? "current" : "locked"
+                  }`}
+                >
+                  <span>{mission.id}</span>
+                  <div>
+                    <strong>{mission.title}</strong>
+                    <p>
+                      {isCleared
+                        ? mission.piece
+                        : isCurrent
+                          ? "현재 조사 중"
+                          : "아직 닫힌 단서"}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+
+        <section className="card">
+          <p className="sectionLabel">Collected Clues</p>
+          <h2>획득한 단서</h2>
           <div className="pieceGrid">
             {missions.map((mission) => (
               <span
@@ -783,7 +748,8 @@ function App() {
         </section>
 
         <section className="card">
-          <h2>현재 공방 성향</h2>
+          <p className="sectionLabel">Investigation Type</p>
+          <h2>현재 조사 성향</h2>
           <ul>
             <li>구조 감각: {traits.structure}</li>
             <li>정밀 해석: {traits.precision}</li>
@@ -793,7 +759,7 @@ function App() {
           </ul>
         </section>
 
-        <button onClick={() => setScreen("mission")}>미션으로 돌아가기</button>
+        <button onClick={() => setScreen("mission")}>조사로 돌아가기</button>
       </main>
     );
   }
@@ -804,63 +770,59 @@ function App() {
 
     return (
       <main className="page centerPage">
-        <p className="eyebrow">Clear</p>
-        <h1>클리어!</h1>
+        <p className="eyebrow">Truth Revealed</p>
+        <h1>진실 확인</h1>
 
         <section className="card">
-          <h2>마지막 어찰</h2>
+          <p className="sectionLabel">Final Letter</p>
+          <h2>왕비 후보의 서찰</h2>
           <p>
-            마지막 어찰에는 거대한 보물의 위치도, 엄청난 비밀도 적혀 있지
-            않았다.
-          </p>
-          <p>그곳에는 단 한 문장만 남아 있었다.</p>
-          <p>
-            <strong>“장인은 사라져도, 기술은 남는다.”</strong>
+            모든 단서는 왕의 마음이 변했다는 방향으로 후보 1을 흔들고 있었다.
           </p>
           <p>
-            그리고 아래에는 새로운 기록을 남길 수 있는 빈칸이 있었다. 당신은
-            마지막 도장을 찍으며, 사라진 기록의 마지막 계승자가 되었다.
+            그러나 매듭은 스스로 풀린 것이 아니라 잘려 있었고, 종이꽃은 진짜가
+            아니었다. 향 도자기의 향과 문양도 달랐으며, 초상은 일부만 잘려
+            있었다.
+          </p>
+          <p>사라졌다던 팔찌는 버려진 것이 아니라 숨겨져 있었다.</p>
+          <p>
+            <strong>“오래된 약속은 아직 끊어지지 않았다.”</strong>
           </p>
         </section>
 
         <section className="card certificateCard">
           <p className="eyebrow">CLEAR CERTIFICATE</p>
-          <h2>사라진 장인의 기록을 완성한 계승자</h2>
+          <h2>혼례의 진실을 밝힌 조사관</h2>
 
-          <CharacterPreview avatar={avatar} />
-
-          <p>팀명: {teamName}</p>
-          <p>선택 도구: {toolLabels[avatar.tool]}</p>
-          <p>클리어 시간: {formatTime(clearTimeSeconds)}</p>
+          <p>조사관: {teamName}</p>
+          <p>조사 시간: {formatTime(clearTimeSeconds)}</p>
           <p>힌트 사용: {hintCount}회</p>
           <p>획득 칭호: {clearTitle}</p>
           <p>엔딩 평가: {hintEnding}</p>
         </section>
 
         <section className="card resultCard">
-          <p className="eyebrow">ARTISAN TYPE</p>
-          <h2>{topTraitResult.title}</h2>
-          <p>대표 성향: {topTraitResult.statName}</p>
-          <p>{topTraitResult.description}</p>
-          <p>연결 공방: {topTraitResult.relatedWorkshop}</p>
+          <p className="eyebrow">RECOMMENDED WORKSHOP</p>
+          <h2>{workshopResult.title}</h2>
+          <p>추천 공방: {workshopResult.workshop}</p>
+          <p>대표 성향: {workshopResult.statName}</p>
+          <p>{workshopResult.description}</p>
           <h3>추천 체험</h3>
           <ul>
-            {topTraitResult.recommendedCrafts.map((craft) => (
+            {workshopResult.recommendedCrafts.map((craft) => (
               <li key={craft}>{craft}</li>
             ))}
           </ul>
         </section>
 
         <section className="card">
+          <p className="sectionLabel">Reward</p>
           <h2>보상 안내</h2>
-          <p>
-            이 화면을 메리골드에 보여주면 클리어 인증과 관련 공방 체험 혜택을
-            받을 수 있습니다.
-          </p>
+          <p>이 화면을 제시하면 클리어 인증과 연계 혜택을 받을 수 있습니다.</p>
         </section>
 
         <button onClick={() => setScreen("leaderboard")}>
-          오늘의 랭킹 보기
+          오늘의 조사 랭킹 보기
         </button>
         <button className="secondaryButton" onClick={resetGame}>
           처음부터 다시 하기
@@ -872,38 +834,48 @@ function App() {
   if (screen === "leaderboard") {
     return (
       <main className="page">
-        <h1>오늘의 탐험가 랭킹</h1>
+        <p className="eyebrow">Today Ranking</p>
+        <h1>오늘의 조사관 랭킹</h1>
         <p className="smallText">
           매일 00:00 기준으로 새로운 랭킹이 시작됩니다.
         </p>
 
-        <section className="card">
-          {leaderboard.map((record, index) => (
-            <button
-              key={`${record.teamName}-${index}`}
-              className="rankRow rankButton"
-              onClick={() => setSelectedRecord(record)}
-            >
-              <span>{index + 1}위</span>
-              <strong>{record.teamName}</strong>
-              <span>{formatTime(record.clearTimeSeconds)}</span>
-              <span>{record.traitTitle ? record.traitTitle : "탐험가형"}</span>
-            </button>
-          ))}
+        <section className="card rankingCard">
+          <p className="sectionLabel">Ranking Board</p>
+          <h2>오늘의 기록</h2>
+
+          <div className="rankingList">
+            {leaderboard.map((record, index) => (
+              <button
+                key={`${record.teamName}-${index}`}
+                className="rankingItem"
+                onClick={() => setSelectedRecord(record)}
+              >
+                <span className="rankingPlace">{index + 1}</span>
+
+                <div className="rankingInfo">
+                  <strong>{record.teamName}</strong>
+                  <span>
+                    {record.traitTitle ? record.traitTitle : "조사관형"}
+                  </span>
+                </div>
+
+                <span className="rankingTime">
+                  {formatTime(record.clearTimeSeconds)}
+                </span>
+              </button>
+            ))}
+          </div>
         </section>
 
         {selectedRecord && (
           <section className="card resultCard">
-            <p className="eyebrow">ARTISAN CARD</p>
+            <p className="eyebrow">INVESTIGATOR CARD</p>
             <h2>{selectedRecord.teamName}</h2>
 
-            {selectedRecord.avatar && (
-              <CharacterPreview avatar={selectedRecord.avatar} />
-            )}
-
-            <p>클리어 시간: {formatTime(selectedRecord.clearTimeSeconds)}</p>
+            <p>조사 시간: {formatTime(selectedRecord.clearTimeSeconds)}</p>
             <p>힌트 사용: {selectedRecord.hintCount}회</p>
-            <p>장인 성향: {selectedRecord.traitTitle || "탐험가형"}</p>
+            <p>조사 성향: {selectedRecord.traitTitle || "조사관형"}</p>
 
             <button
               className="secondaryButton"

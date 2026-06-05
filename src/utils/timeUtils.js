@@ -6,22 +6,22 @@ export function formatTime(seconds) {
 
 export function getClearTitle(clearTimeSeconds, hintCount) {
   if (hintCount === 0 && clearTimeSeconds <= 1200) {
-    return "전설의 공방 탐험가";
+    return "왕명을 받은 비밀 조사관";
   }
 
   if (clearTimeSeconds <= 1800) {
-    return "행궁 수작 장인";
+    return "서찰의 진실을 밝힌 자";
   }
 
   if (clearTimeSeconds <= 2700) {
-    return "골목 유람가";
+    return "약속을 잇는 조사관";
   }
 
-  return "느긋한 산책자";
+  return "끝까지 따라간 궁중 기록관";
 }
 
 export function getHintEnding(hintCount) {
-  if (hintCount === 0) return "완벽한 탐정";
-  if (hintCount <= 2) return "노련한 유람가";
-  return "끈기의 장인";
+  if (hintCount === 0) return "흔들림 없는 완벽한 추리";
+  if (hintCount <= 2) return "단서를 놓치지 않은 노련한 조사";
+  return "끝내 진실에 닿은 집념의 조사";
 }

@@ -1,161 +1,280 @@
-.teaserPanel {
-  overflow: hidden;
-  border: 1px solid rgba(217, 189, 122, 0.5);
-  border-radius: 24px;
-  background: #080608;
-  box-shadow: var(--shadow-card);
+@import url("https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Song+Myung&display=swap");
+
+/* variables / reset / base */
+:root {
+  --night: #120d12;
+  --night-deep: #080608;
+  --ink: #2a2025;
+  --ink-soft: #6f5d62;
+  --paper: #fff7e8;
+  --paper-deep: #ead9bd;
+  --paper-warm: #d9bf8d;
+  --wine: #8c2f39;
+  --wine-deep: #351d32;
+  --plum: #6a3659;
+  --gold: #b9975b;
+  --gold-bright: #d9bd7a;
+  --shadow-card: 0 22px 54px rgba(0, 0, 0, 0.34);
+  --shadow-soft: 0 14px 32px rgba(42, 32, 37, 0.14);
+
+  font-family:
+    Pretendard,
+    "Noto Sans KR",
+    "Apple SD Gothic Neo",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  color: var(--paper);
+  background: var(--night);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-.teaserVideo {
-  display: block;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  background: #080608;
-  object-fit: cover;
+html {
+  min-height: 100%;
+  background: #09070a;
 }
 
-.clueMap {
+body {
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba(140, 47, 57, 0.26),
+      transparent 36rem
+    ),
+    linear-gradient(180deg, #1b1118 0%, var(--night) 48%, #09070a 100%);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: 100% 100dvh;
+  color: var(--paper);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* layout / page */
+.page {
+  width: min(100%, 520px);
+  max-width: 520px;
+  min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 20px;
+  margin: 0 auto;
+  padding: 28px 18px 40px;
+  color: var(--paper);
 }
 
-.clueMapItem {
-  display: grid;
-  grid-template-columns: 38px 1fr;
-  gap: 12px;
-  align-items: center;
-  padding: 12px;
-  border: 1px solid rgba(185, 151, 91, 0.28);
-  border-radius: 16px;
-  background: rgba(255, 247, 232, 0.45);
+.centerPage {
+  min-height: 100vh;
+  min-height: 100dvh;
+  justify-content: center;
 }
 
-.clueMapItem > span {
-  width: 34px;
-  height: 34px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(42, 32, 37, 0.16);
+.page > .eyebrow + h1 {
+  margin-top: 12px;
+}
+
+.page > h1 + p {
+  margin-top: 8px;
+  margin-bottom: 4px;
+}
+
+.page > .smallText {
+  margin-top: 10px;
+}
+
+/* typography */
+h1,
+h2,
+h3,
+p,
+ul {
+  margin-top: 0;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  color: var(--paper);
+  font-family: "Song Myung", "Gowun Batang", "Noto Serif KR", serif;
+  font-size: 36px;
+  line-height: 1.2;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
+}
+
+h2 {
+  margin-bottom: 10px;
   color: var(--ink);
-  font-weight: 900;
-}
-
-.clueMapItem strong {
-  display: block;
-  color: var(--ink);
-  font-size: 14px;
+  font-family: "Gowun Batang", "Noto Serif KR", serif;
+  font-size: 22px;
   line-height: 1.35;
 }
 
-.clueMapItem p {
-  color: var(--ink-soft);
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.clueMapItem.current {
-  border-color: rgba(140, 47, 57, 0.65);
-  background: rgba(140, 47, 57, 0.12);
-}
-
-.clueMapItem.current > span {
-  background: var(--wine);
-  color: #fff7e8;
-}
-
-.clueMapItem.cleared {
-  border-color: rgba(185, 151, 91, 0.75);
-  background: rgba(185, 151, 91, 0.2);
-}
-
-.clueMapItem.cleared > span {
-  background: var(--gold);
+h3 {
+  margin-bottom: 8px;
   color: var(--ink);
+  font-family: "Gowun Batang", "Noto Serif KR", serif;
+  font-size: 18px;
+  line-height: 1.4;
 }
 
-.clueMapItem.locked {
-  opacity: 0.58;
+p,
+li {
+  color: inherit;
+  line-height: 1.68;
 }
 
-.heroVisual {
-  position: relative;
-  min-height: 520px;
-  padding: 0;
-  overflow: hidden;
-  border: 1px solid rgba(217, 189, 122, 0.55);
-  border-radius: 28px;
-  box-shadow: var(--shadow-card);
+ul {
+  margin-bottom: 0;
+  padding-left: 20px;
 }
 
-.heroImage {
-  display: block;
-  width: 100%;
-  height: 520px;
-  object-fit: cover;
-}
-
-.heroOverlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(18, 13, 18, 0.12) 0%,
-    rgba(18, 13, 18, 0.2) 30%,
-    rgba(18, 13, 18, 0.88) 100%
-  );
-}
-
-.heroContent {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 28px 22px 24px;
-  z-index: 2;
-}
-
-.heroSubtitle {
-  margin-top: 8px;
-  color: rgba(255, 247, 232, 0.92);
-  font-size: 15px;
-}
-
-.heroCopy {
-  margin-top: 12px;
-  color: rgba(255, 247, 232, 0.88);
-  line-height: 1.7;
-}
-
-.royalStatRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 16px;
-}
-
-.royalStat {
-  display: inline-flex;
-  align-items: center;
-  padding: 8px 12px;
-  border: 1px solid rgba(217, 189, 122, 0.4);
-  border-radius: 999px;
-  background: rgba(18, 13, 18, 0.45);
-  color: #fff7e8;
-  font-size: 13px;
-  font-weight: 700;
-}
-
+.eyebrow,
 .sectionLabel {
-  margin: 0 0 8px;
+  margin-bottom: 8px;
   color: var(--gold);
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.14em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
+.smallText {
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.locationText {
+  color: var(--wine);
+  font-weight: 800;
+}
+
+/* buttons / forms */
+button {
+  border: 1px solid rgba(217, 189, 122, 0.55);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--plum) 0%, var(--wine-deep) 100%);
+  color: var(--paper);
+  font-weight: 900;
+  letter-spacing: 0;
+  transition:
+    transform 0.15s ease,
+    filter 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+
+.page > button,
+.secondaryButton {
+  width: 100%;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 0;
+  padding: 18px 20px;
+  font-size: 16px;
+  line-height: 1.35;
+  box-shadow:
+    0 12px 28px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.page > button + button,
+.page > button + .secondaryButton,
+.page > .secondaryButton + button {
+  margin-top: 12px;
+}
+
+.page > button:last-child {
+  margin-bottom: 28px;
+}
+
+.secondaryButton {
+  border-color: rgba(185, 151, 91, 0.75);
+  background: linear-gradient(180deg, var(--paper-deep) 0%, #d1b37d 100%);
+  color: var(--ink);
+  box-shadow: 0 8px 22px rgba(42, 32, 37, 0.18);
+}
+
+input {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid rgba(74, 38, 63, 0.28);
+  border-radius: 14px;
+  background: #fffaf0;
+  color: var(--ink);
+  font-size: 16px;
+  box-shadow: inset 0 2px 8px rgba(42, 32, 37, 0.08);
+}
+
+input::placeholder {
+  color: rgba(42, 32, 37, 0.45);
+}
+
+.page > input {
+  margin-top: 8px;
+  margin-bottom: 14px;
+  padding: 14px 15px;
+}
+
+.page > p + input {
+  margin-top: 14px;
+}
+
+.page > input + button {
+  margin-top: 4px;
+}
+
+/* cards */
 .card {
   position: relative;
   padding: 22px 20px;
@@ -180,266 +299,187 @@
 }
 
 .card::after {
-  content: "✦";
+  content: "";
   position: absolute;
   top: 14px;
   right: 16px;
-  color: rgba(185, 151, 91, 0.5);
-  font-size: 14px;
-}
-
-h1 {
-  font-family: "Song Myung", "Gowun Batang", "Noto Serif KR", serif;
-  font-size: 36px;
-  line-height: 1.2;
-  color: #fff7e8;
-}
-
-h2 {
-  font-family: "Gowun Batang", "Noto Serif KR", serif;
-  font-size: 22px;
-  color: var(--ink);
-}
-
-.page {
-  gap: 20px;
-}
-
-button {
-  border-radius: 16px;
-  background: linear-gradient(180deg, #5a2f4c 0%, #2f1b2d 100%);
-  color: #fff7e8;
-  font-weight: 800;
-  letter-spacing: 0.01em;
-}
-
-.secondaryButton {
-  background: linear-gradient(180deg, #ead9bd 0%, #d9bf8d 100%);
-  color: var(--ink);
-}
-
-/* =========================
-   FIX: mission/card readability
-   ========================= */
-
-.page {
-  width: min(100%, 520px);
-  max-width: 520px;
-  margin: 0 auto;
-  padding: 28px 18px 40px;
-  color: #fff7e8;
-}
-
-.card,
-.warning,
-.certificateCard,
-.resultCard {
-  color: #2a2025 !important;
-  background: linear-gradient(
-    180deg,
-    rgba(249, 240, 220, 0.98) 0%,
-    rgba(237, 222, 191, 0.98) 100%
-  ) !important;
+  width: 34px;
+  height: 1px;
+  background: rgba(185, 151, 91, 0.45);
 }
 
 .card h2,
 .card h3,
 .card p,
 .card li,
-.card strong,
-.card span,
-.warning h2,
-.warning p,
-.certificateCard h2,
-.certificateCard p,
-.resultCard h2,
-.resultCard h3,
-.resultCard p,
-.resultCard li {
-  color: #2a2025 !important;
+.card strong {
+  color: var(--ink);
 }
 
-.card .sectionLabel,
 .card .eyebrow,
-.warning .sectionLabel,
-.certificateCard .eyebrow,
-.resultCard .eyebrow {
-  color: #8a6736 !important;
+.card .sectionLabel {
+  color: #8a6736;
 }
 
 .card .smallText {
-  color: #6f5d62 !important;
+  color: var(--ink-soft);
 }
 
-.hint {
-  color: #2a2025 !important;
-  background: rgba(185, 151, 91, 0.18) !important;
+.warning {
+  border-color: rgba(140, 47, 57, 0.46);
+  background: linear-gradient(180deg, #f7ead2 0%, #e7ccb2 100%);
 }
 
-.message {
-  color: #ffe8df !important;
-  background: rgba(140, 47, 57, 0.28) !important;
+/* landing / hero / teaser */
+.hero {
+  color: var(--paper);
 }
 
-/* 문제 입력창 / 버튼 사이 간격 */
-.card input {
-  margin-top: 14px;
-  color: #2a2025 !important;
-  background: #fff8ec !important;
+.heroVisual {
+  position: relative;
+  min-height: 520px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(217, 189, 122, 0.55);
+  border-radius: 28px;
+  background: var(--night-deep);
+  box-shadow: var(--shadow-card);
 }
 
-.card button {
-  margin-top: 12px;
-}
-
-/* 미션 화면 제목은 잘 보이게 */
-.page > h1 {
-  color: #fff7e8 !important;
-  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.5);
-}
-
-/* 상단 진행바 */
-.missionHeader {
-  color: #f4d78f !important;
-  background: rgba(18, 13, 18, 0.92) !important;
-}
-
-/* 힌트 버튼은 종이색 위에서 잘 보이게 */
-.hintBlock .secondaryButton {
-  color: #2a2025 !important;
-  background: linear-gradient(180deg, #ead9bd 0%, #d9bf8d 100%) !important;
-}
-
-/* 단서첩 아이템 텍스트 */
-.clueMapItem,
-.clueMapItem strong,
-.clueMapItem p,
-.pieceGrid .piece {
-  color: #2a2025;
-}
-
-/* =========================
-   FIX: page bottom buttons
-   ========================= */
-
-.page > button {
-  width: 100% !important;
-  min-height: 54px;
-  padding: 16px 18px !important;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 18px !important;
-  font-size: 16px !important;
-  font-weight: 900 !important;
-  line-height: 1.2;
-}
-
-.page > button:not(.secondaryButton) {
-  background: linear-gradient(180deg, #6a3659 0%, #351d32 100%) !important;
-  border: 1px solid rgba(217, 189, 122, 0.55) !important;
-  color: #fff7e8 !important;
-  box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.34),
-    inset 0 1px 0 rgba(255, 255, 255, 0.16);
-}
-
-.page > .secondaryButton {
-  background: linear-gradient(180deg, #ead9bd 0%, #d1b37d 100%) !important;
-  border: 1px solid rgba(185, 151, 91, 0.75) !important;
-  color: #2a2025 !important;
-}
-
-.page > button:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-}
-
-/* =========================
-   FIX: form spacing
-   ========================= */
-
-.page > input {
-  margin-top: 8px;
-  margin-bottom: 14px;
-  min-height: 52px;
-  border-radius: 14px;
-  font-size: 16px;
-}
-
-.page > p + input {
-  margin-top: 14px;
-}
-
-.page > input + button {
-  margin-top: 4px;
-}
-
-.page > button + .secondaryButton,
-.page > button + button {
-  margin-top: 10px;
-}
-
-.page > .smallText {
-  margin-top: 10px;
-  line-height: 1.6;
-}
-
-/* 코드 입력 페이지처럼 텍스트가 많은 화면 여백 정리 */
-.page > .eyebrow + h1 {
-  margin-top: 12px;
-}
-
-.page > h1 + p {
-  margin-top: 8px;
-  margin-bottom: 4px;
-}
-
-.page > input,
-.page > button {
+.heroImage {
+  display: block;
   width: 100%;
+  height: 520px;
+  object-fit: cover;
 }
 
-/* =========================
-   FIX: action button spacing
-   ========================= */
-
-/* 카드 다음에 나오는 메인 버튼은 숨 쉴 공간 주기 */
-.page > .card + button,
-.page > .teaserPanel + .card + .card + button {
-  margin-top: 14px !important;
+.heroOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(18, 13, 18, 0.12) 0%,
+    rgba(18, 13, 18, 0.2) 30%,
+    rgba(18, 13, 18, 0.88) 100%
+  );
 }
 
-/* 페이지 직속 버튼 공통 */
-.page > button {
-  margin-top: 12px !important;
-  margin-bottom: 0 !important;
+.heroContent {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  padding: 28px 22px 24px;
 }
 
-/* 버튼끼리 붙지 않게 */
-.page > button + button,
-.page > button + .secondaryButton,
-.page > .secondaryButton + button {
-  margin-top: 12px !important;
+.heroContent .eyebrow,
+.heroContent h1,
+.heroSubtitle,
+.heroCopy {
+  color: var(--paper);
 }
 
-/* 버튼 안쪽 여백 더 넉넉하게 */
-.page > button {
-  min-height: 58px !important;
-  padding: 18px 20px !important;
-  border-radius: 18px !important;
-  font-size: 16px !important;
-  line-height: 1.35 !important;
+.heroSubtitle {
+  margin-top: 8px;
+  font-size: 15px;
 }
 
-/* 마지막 버튼 아래도 여백 확보 */
-.page > button:last-child {
-  margin-bottom: 28px !important;
+.heroCopy {
+  margin-top: 12px;
+  margin-bottom: 0;
+  line-height: 1.7;
 }
 
-/* =========================
-   FIX: mission answer / hint UI
-   ========================= */
+.royalStatRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.royalStat {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  border: 1px solid rgba(217, 189, 122, 0.4);
+  border-radius: 999px;
+  background: rgba(18, 13, 18, 0.45);
+  color: var(--paper);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.teaserPanel {
+  overflow: hidden;
+  border: 1px solid rgba(217, 189, 122, 0.5);
+  border-radius: 24px;
+  background: var(--night-deep);
+  box-shadow: var(--shadow-card);
+}
+
+.teaserVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--night-deep);
+  object-fit: cover;
+}
+
+/* story / mission common */
+.missionHeader {
+  position: sticky;
+  top: 10px;
+  z-index: 5;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(217, 189, 122, 0.36);
+  border-radius: 999px;
+  background: rgba(18, 13, 18, 0.92);
+  color: #f4d78f;
+  font-size: 13px;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(10px);
+}
+
+.storyCard p:last-child,
+.endingCard p:last-child,
+.ruleBox p:last-child,
+.missionContentFlow p:last-child {
+  margin-bottom: 0;
+}
+
+.missionContentFlow {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.missionImageList {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.missionImage {
+  width: 100%;
+  display: block;
+  border: 1px solid rgba(210, 174, 95, 0.45);
+  border-radius: 18px;
+  object-fit: cover;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+}
+
+.ruleBox {
+  margin: 16px 0;
+  padding: 14px;
+  border: 1px solid rgba(185, 151, 91, 0.35);
+  border-radius: 18px;
+  background: rgba(255, 247, 232, 0.55);
+}
 
 .answerCard .answerBox {
   margin-top: 18px;
@@ -449,38 +489,234 @@ button {
   background: rgba(255, 247, 232, 0.55);
 }
 
-.answerCard input {
-  width: 100% !important;
-  min-height: 52px;
+.answerBox input {
   display: block;
-  margin: 0 0 12px 0 !important;
+  margin: 0 0 12px;
   padding: 14px 15px;
-  border: 1px solid rgba(74, 38, 63, 0.28);
-  border-radius: 14px;
-  background: #fffaf0 !important;
-  color: #2a2025 !important;
-  font-size: 15px;
-  box-shadow: inset 0 2px 8px rgba(42, 32, 37, 0.08);
 }
 
-.answerCard input::placeholder {
-  color: rgba(42, 32, 37, 0.45);
-}
-
-.answerCard button {
-  width: 100% !important;
+.answerBox button,
+.arScanBox > button {
+  width: 100%;
   min-height: 52px;
-  margin: 0 !important;
-  padding: 15px 16px !important;
-  border-radius: 15px !important;
-  background: linear-gradient(180deg, #6a3659 0%, #351d32 100%) !important;
-  border: 1px solid rgba(185, 151, 91, 0.55) !important;
-  color: #fff7e8 !important;
-  font-size: 15px !important;
-  font-weight: 900 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 15px 16px;
+  border-radius: 15px;
+  font-size: 15px;
+}
+
+.arScanBox > button + .secondaryButton {
+  margin-top: 10px;
+}
+
+/* tile puzzle */
+.tilePuzzleWrap {
+  margin: 18px 0;
+}
+
+.tilePuzzleGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto 14px;
+}
+
+.tilePuzzlePiece {
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid rgba(95, 68, 37, 0.35);
+  border-radius: 10px;
+  background: rgba(255, 248, 230, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42);
+}
+
+.tilePuzzlePiece img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.tilePuzzlePiece.selected {
+  border-color: #b67a2f;
   box-shadow:
-    0 10px 22px rgba(43, 24, 40, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+    0 0 0 3px rgba(182, 122, 47, 0.25),
+    0 10px 22px rgba(42, 32, 37, 0.2);
+  transform: translateY(-2px);
+}
+
+.tilePuzzlePiece.solved {
+  cursor: default;
+  border-color: rgba(185, 151, 91, 0.75);
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 232, 0.36);
+}
+
+/* AR scan gate */
+.arBox {
+  margin-top: 18px;
+}
+
+.arScanBox {
+  margin-top: 18px;
+}
+
+.arCameraFrame {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 3 / 4;
+  margin: 16px auto;
+  overflow: hidden;
+  border: 2px solid rgba(95, 68, 37, 0.35);
+  border-radius: 18px;
+  background: #111;
+  box-shadow: 0 14px 30px rgba(42, 32, 37, 0.24);
+}
+
+.arVideo {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.arOverlayImage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 78%;
+  max-height: 70%;
+  object-fit: contain;
+  opacity: 0.42;
+  filter: sepia(0.15);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.arFrameGuide {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 82%;
+  height: 52%;
+  border: 2px dashed rgba(255, 245, 210, 0.85);
+  border-radius: 14px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.arScoreBox {
+  max-width: 520px;
+  margin: 10px auto 16px;
+}
+
+.arScoreText {
+  margin-bottom: 6px;
+  color: var(--ink);
+  font-weight: 800;
+  text-align: center;
+}
+
+.arScoreMeter {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(60, 42, 25, 0.18);
+}
+
+.arScoreFill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--gold) 0%, #b36b22 100%);
+  transition: width 0.2s ease;
+}
+
+/* choice question */
+.choiceQuestionBox {
+  margin-top: 18px;
+}
+
+.choiceList {
+  display: grid;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.choiceButton {
+  position: relative;
+  width: 100%;
+  min-height: 54px;
+  display: block;
+  padding: 15px 46px 15px 16px;
+  border: 1.5px solid rgba(115, 83, 45, 0.35);
+  border-radius: 16px;
+  background: rgba(255, 248, 230, 0.88);
+  color: #2b1a12;
+  font-size: 1rem;
+  line-height: 1.45;
+  text-align: left;
+  box-shadow: none;
+}
+
+.choiceButton:hover {
+  border-color: rgba(177, 123, 47, 0.75);
+  background: rgba(255, 241, 202, 0.95);
+}
+
+.choiceButton.selected {
+  border: 2px solid #b36b22;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 228, 160, 0.95),
+    rgba(196, 124, 43, 0.28)
+  );
+  font-weight: 900;
+  box-shadow:
+    0 0 0 3px rgba(179, 107, 34, 0.22),
+    0 10px 24px rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+}
+
+.choiceButton.selected::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 19px;
+  width: 7px;
+  height: 14px;
+  border: solid #6f3e12;
+  border-width: 0 3px 3px 0;
+  transform: translateY(-58%) rotate(45deg);
+}
+
+/* hints / messages */
+.message {
+  margin: 14px 0 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(217, 189, 122, 0.22);
+  border-radius: 14px;
+  background: rgba(140, 47, 57, 0.28);
+  color: #ffe8df;
+  font-weight: 700;
+}
+
+.card .message {
+  color: #5b1f27;
+  background: rgba(140, 47, 57, 0.12);
+}
+
+.successMessage,
+.card .successMessage {
+  color: #276749;
+  background: rgba(39, 103, 73, 0.12);
 }
 
 .hintCard .hintBlock {
@@ -496,17 +732,15 @@ button {
 }
 
 .hintCard .secondaryButton {
-  width: 100% !important;
   min-height: 46px;
-  margin: 0 !important;
-  padding: 12px 14px !important;
-  border-radius: 14px !important;
-  background: linear-gradient(180deg, #ead9bd 0%, #d2b47f 100%) !important;
-  border: 1px solid rgba(138, 103, 54, 0.45) !important;
-  color: #2a2025 !important;
-  font-size: 14px !important;
-  font-weight: 900 !important;
-  box-shadow: none !important;
+  margin: 0;
+  padding: 12px 14px;
+  border-color: rgba(138, 103, 54, 0.45);
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--paper-deep) 0%, #d2b47f 100%);
+  color: var(--ink);
+  font-size: 14px;
+  box-shadow: none;
 }
 
 .hintCard .hint {
@@ -514,21 +748,125 @@ button {
   padding: 13px 14px;
   border: 1px dashed rgba(138, 103, 54, 0.48);
   border-radius: 14px;
-  background: rgba(234, 217, 189, 0.7) !important;
-  color: #2a2025 !important;
+  background: rgba(234, 217, 189, 0.7);
+  color: var(--ink);
   line-height: 1.65;
 }
 
-/* 카드 안 버튼이 전역 page 버튼 스타일에 끌려가지 않게 */
-.card button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* progress / clue map */
+.progressBar {
+  width: 100%;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(42, 32, 37, 0.12);
 }
 
-/* =========================
-   FIX: ranking board UI
-   ========================= */
+.progressFill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--wine) 0%, var(--gold) 100%);
+  transition: width 0.25s ease;
+}
+
+.clueMap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.clueMapItem {
+  display: grid;
+  grid-template-columns: 38px 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid rgba(185, 151, 91, 0.28);
+  border-radius: 16px;
+  background: rgba(255, 247, 232, 0.45);
+  color: var(--ink);
+}
+
+.clueMapItem > span {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(42, 32, 37, 0.16);
+  color: var(--ink);
+  font-weight: 900;
+}
+
+.clueMapItem strong {
+  display: block;
+  color: var(--ink);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.clueMapItem p {
+  margin-bottom: 0;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.clueMapItem.current {
+  border-color: rgba(140, 47, 57, 0.65);
+  background: rgba(140, 47, 57, 0.12);
+}
+
+.clueMapItem.current > span {
+  background: var(--wine);
+  color: var(--paper);
+}
+
+.clueMapItem.cleared {
+  border-color: rgba(185, 151, 91, 0.75);
+  background: rgba(185, 151, 91, 0.2);
+}
+
+.clueMapItem.cleared > span {
+  background: var(--gold);
+  color: var(--ink);
+}
+
+.clueMapItem.locked {
+  opacity: 0.58;
+}
+
+.pieceGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.piece {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 12px;
+  border: 1px solid rgba(185, 151, 91, 0.38);
+  border-radius: 999px;
+  background: rgba(255, 247, 232, 0.54);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  text-align: center;
+}
+
+.piece.locked {
+  opacity: 0.58;
+}
+
+/* ranking / result / certificate */
+.certificateCard,
+.resultCard,
+.endingCard {
+  border-color: rgba(185, 151, 91, 0.62);
+}
 
 .rankingCard {
   padding-bottom: 20px;
@@ -542,47 +880,39 @@ button {
 }
 
 .rankingItem {
-  width: 100% !important;
-  min-height: 72px !important;
-  margin: 0 !important;
-  padding: 12px 14px !important;
-
-  display: grid !important;
+  width: 100%;
+  min-height: 72px;
+  display: grid;
   grid-template-columns: 42px 1fr auto;
-  align-items: center;
   gap: 12px;
-
-  border: 1px solid rgba(185, 151, 91, 0.38) !important;
-  border-radius: 16px !important;
-
+  align-items: center;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(185, 151, 91, 0.38);
+  border-radius: 16px;
   background: linear-gradient(
     180deg,
     rgba(255, 248, 236, 0.92) 0%,
     rgba(236, 218, 184, 0.92) 100%
-  ) !important;
-
-  color: #2a2025 !important;
-  box-shadow: 0 6px 14px rgba(42, 32, 37, 0.08) !important;
-  text-align: left !important;
+  );
+  color: var(--ink);
+  text-align: left;
+  box-shadow: 0 6px 14px rgba(42, 32, 37, 0.08);
 }
 
 .rankingItem:hover {
-  transform: translateY(-1px);
-  background: linear-gradient(180deg, #fff8ec 0%, #ead6b2 100%) !important;
-  border-color: rgba(185, 151, 91, 0.72) !important;
+  border-color: rgba(185, 151, 91, 0.72);
+  background: linear-gradient(180deg, #fff8ec 0%, #ead6b2 100%);
 }
 
 .rankingPlace {
   width: 38px;
   height: 38px;
-
   display: grid;
   place-items: center;
-
   border-radius: 999px;
-  background: linear-gradient(180deg, #6a3659 0%, #351d32 100%);
-  color: #fff7e8 !important;
-
+  background: linear-gradient(180deg, var(--plum) 0%, var(--wine-deep) 100%);
+  color: var(--paper);
   font-size: 15px;
   font-weight: 900;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14);
@@ -596,14 +926,14 @@ button {
 }
 
 .rankingInfo strong {
-  color: #2a2025 !important;
+  color: var(--ink);
   font-size: 16px;
   font-weight: 900;
   line-height: 1.25;
 }
 
 .rankingInfo span {
-  color: #735f4f !important;
+  color: #735f4f;
   font-size: 13px;
   font-weight: 700;
   line-height: 1.3;
@@ -613,28 +943,68 @@ button {
   padding: 7px 9px;
   border-radius: 999px;
   background: rgba(74, 38, 63, 0.1);
-  color: #4a263f !important;
+  color: #4a263f;
   font-size: 13px;
   font-weight: 900;
   white-space: nowrap;
 }
 
-/* 기존 rankRow 스타일이 남아있어도 영향 줄이기 */
-.rankRow.rankButton {
-  color: #2a2025 !important;
-  background: transparent !important;
+/* responsive */
+@media (max-width: 420px) {
+  .page {
+    padding: 22px 14px 36px;
+  }
+
+  h1 {
+    font-size: 31px;
+  }
+
+  h2 {
+    font-size: 20px;
+  }
+
+  .heroVisual,
+  .heroImage {
+    min-height: 480px;
+    height: 480px;
+  }
+
+  .heroContent {
+    padding: 24px 18px 22px;
+  }
+
+  .pieceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .rankingItem {
+    grid-template-columns: 38px 1fr;
+  }
+
+  .rankingTime {
+    grid-column: 2;
+    justify-self: start;
+  }
 }
 
-.missionImageList {
-  display: grid;
-  gap: 14px;
-  margin: 18px 0;
-}
-
-.missionImage {
+.choiceSubmitButton {
   width: 100%;
+  min-height: 56px;
+  margin-top: 16px;
+  padding: 16px 18px;
   border-radius: 18px;
-  border: 1px solid rgba(210, 174, 95, 0.45);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-  object-fit: cover;
+  border: 1px solid rgba(217, 189, 122, 0.6);
+  background: linear-gradient(180deg, #6a3659 0%, #351d32 100%);
+  color: #fff7e8;
+  font-size: 16px;
+  font-weight: 900;
+  box-shadow:
+    0 12px 26px rgba(43, 24, 40, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.choiceSubmitButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
 }

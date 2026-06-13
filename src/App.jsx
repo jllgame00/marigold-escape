@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { gameInfo } from "./data/gameData";
 import { dummyLeaderboard } from "./data/leaderboardData";
 import { formatTime, getClearTitle, getHintEnding } from "./utils/timeUtils";
@@ -12,7 +12,7 @@ const gameConfig = {
   title: gameInfo?.title || "왕비 후보의 서찰",
   subtitle: gameInfo?.subtitle || "궁중 공방 미스터리 야외 방탈출",
   validCodes: gameInfo?.validCodes || ["TEST", "ROYAL", "ROYAL-001"],
-  playTime: gameInfo?.playTime || "60~90분",
+  playTime: gameInfo?.playTime || "30~40분",
   players: gameInfo?.players || "1~4명",
   requiredItems: gameInfo?.requiredItems || ["스마트폰", "사건 키트", "필기구"],
   kitItems: gameInfo?.kitItems || [
@@ -75,22 +75,135 @@ const storyFlow = [
     type: "mission",
     missionId: 1,
     chapter: "미션 1",
-    title: "깨진 도자기",
-    location: "향기도예 / 갤러리풍경",
-    piece: "깨진 도자기 조각",
-    intro:
-      "첫 번째 단서는 깨진 도자기 조각이다. 이 도자기는 전하와 왕비 후보 A가 어린 시절 함께 만들었던 추억의 물건으로, 둘 사이의 약속을 상징하는 물건이었다.",
+    title: "깨진 향로",
+    location: "향기도예",
+    piece: "깨진 향 도자기 조각",
+    puzzleType: "tile-swap",
+
+    arTargetImage: "/mission/mission1-pottery/hyanggi-sign.png",
+    arMatchThreshold: 0.55,
+    arMaxFailCount: 3,
+
+    puzzlePieces: [
+      {
+        id: "piece-01",
+        image: "/mission/mission1-pottery/piece-01.png",
+        correctIndex: 0,
+        alt: "깨진 향 도자기 조각 1",
+      },
+      {
+        id: "piece-02",
+        image: "/mission/mission1-pottery/piece-02.png",
+        correctIndex: 1,
+        alt: "깨진 향 도자기 조각 2",
+      },
+      {
+        id: "piece-03",
+        image: "/mission/mission1-pottery/piece-03.png",
+        correctIndex: 2,
+        alt: "깨진 향 도자기 조각 3",
+      },
+      {
+        id: "piece-04",
+        image: "/mission/mission1-pottery/piece-04.png",
+        correctIndex: 3,
+        alt: "깨진 향 도자기 조각 4",
+      },
+      {
+        id: "piece-05",
+        image: "/mission/mission1-pottery/piece-05.png",
+        correctIndex: 4,
+        alt: "깨진 향 도자기 조각 5",
+      },
+      {
+        id: "piece-06",
+        image: "/mission/mission1-pottery/piece-06.png",
+        correctIndex: 5,
+        alt: "깨진 향 도자기 조각 6",
+      },
+      {
+        id: "piece-07",
+        image: "/mission/mission1-pottery/piece-07.png",
+        correctIndex: 6,
+        alt: "깨진 향 도자기 조각 7",
+      },
+      {
+        id: "piece-08",
+        image: "/mission/mission1-pottery/piece-08.png",
+        correctIndex: 7,
+        alt: "깨진 향 도자기 조각 8",
+      },
+      {
+        id: "piece-09",
+        image: "/mission/mission1-pottery/piece-09.png",
+        correctIndex: 8,
+        alt: "깨진 향 도자기 조각 9",
+      },
+    ],
+    initialOrder: [
+      "piece-05",
+      "piece-01",
+      "piece-09",
+      "piece-03",
+      "piece-08",
+      "piece-02",
+      "piece-06",
+      "piece-04",
+      "piece-07",
+    ],
+    letterTitle: "플레이어가 받는 서찰",
+    letterParagraphs: [
+      "첫 번째 흔적은 향을 담던 도자기입니다.",
+      "오래전 전하와 제가 함께 고른 물건이지요.",
+      "하지만 누군가 그것을 깨뜨렸습니다.",
+      "모두들 불길한 징조라 말하지만… 저는 믿지 않습니다.",
+      "흙은 손길을 기억합니다.",
+      "부서진 그릇의 흔적을 따라 향기도예로 가 주세요.",
+    ],
+    recordTitle: "사건 기록 제1장 — 깨진 향로",
+    recordParagraphs: [
+      "간택을 앞둔 날 밤, 왕비 후보 A가 보관하던 향 도자기가 깨진 채 발견되었다.",
+      "궁 안에서는 이것이 혼례를 앞둔 불길한 징조라 수군거렸고, 일부는 A가 스스로 깨뜨렸다고 주장했다.",
+      "그러나 기록관인 당신은 이상함을 느낀다.",
+      "깨진 조각들은 모두 보관되어 있다.",
+      "이것이 사고인지, 누군가의 의도인지 밝혀내라.",
+    ],
     instruction:
-      "향기도예와 갤러리풍경 주변에서 도자기 조각의 형태와 문양을 확인하고, 숨겨진 암호를 입력하라.",
-    rule: [
-      "도자기의 문양, 파손 방향, 남은 흔적을 함께 확인하라.",
-      "정답은 다른 제작자가 완성할 예정인 임시 퍼즐이다.",
-    ],
+      "흩어진 조각을 원래 모습으로 되돌려라. 향 도자기의 본래 형상을 복원하면 숨겨진 진실이 드러날 것이다.",
+    afterPuzzleTitle: "간판 AR 조사",
+    afterPuzzleText:
+      "복원된 향 도자기를 살펴본 뒤, 가게 간판을 AR로 확인하라. 금의 결이 어느 방향으로 퍼져나가는지 확인해야 한다.",
+    choiceQuestion: {
+      title: "조사 문제",
+      description:
+        "복원된 향 도자기를 살펴보니 금의 결이 모두 한 곳에서 퍼져나가고 있다. 이것은 무엇을 의미하는가?",
+      choices: [
+        {
+          value: "1",
+          label: "① 실수로 떨어뜨려 깨졌다",
+        },
+        {
+          value: "2",
+          label: "② 오래되어 자연히 갈라졌다",
+        },
+        {
+          value: "3",
+          label: "③ 누군가 한 지점을 강하게 내리쳐 깨뜨렸다",
+        },
+      ],
+    },
     hints: [
-      "깨진 흔적이 자연스럽게 생긴 것인지, 누군가 일부러 낸 것인지 비교하라.",
-      "문양은 단순 장식이 아니라 두 사람의 약속을 가리킨다.",
+      "먼저 도자기 조각의 문양이 이어지도록 맞춰라.",
+      "금의 결은 단순한 장식이 아니라 충격이 퍼진 방향을 보여준다.",
+      "한 곳에서 금이 퍼져나간다면, 충격이 시작된 지점이 있었다는 뜻이다.",
     ],
-    answer: "TEMP1",
+    answer: "3",
+    acceptedAnswers: [
+      "3",
+      "③",
+      "누군가한지점을강하게내리쳐깨뜨렸다",
+      "누군가한지점을강하게내리쳐깨뜨림",
+    ],
   },
   {
     id: "story-2",
@@ -404,20 +517,29 @@ const storyFlow = [
     type: "mission",
     missionId: 6,
     chapter: "길거리 단서",
-    title: "찢어진 초상의 방향",
-    location: "길거리",
-    piece: "찢어진 초상 조각",
-    intro: "초상화의 일부는 공방거리의 길 위에 남겨진 문양과 이어져 있었다.",
-    instruction: "길 위의 단서를 확인하고 찢어진 초상화의 방향을 복원하라.",
+    title: "두 해바라기 사이의 같은 동물",
+    location: "길거리 연꽃 벽화",
+    piece: "연꽃 벽의 동물 단서",
+    image: "/mission/mission6-lotus-crop.png",
+    intro:
+      "종이노리에서 얻은 문장, “하나의 날 두 이름”은 다음 벽을 찾는 단서였다.",
+    instruction:
+      "벽에서 큰 연꽃 그림을 찾아라. 연꽃의 왼쪽과 오른쪽 아래에는 같은 해바라기 그림이 하나씩 놓여 있다.",
     rule: [
-      "초상화 조각의 방향과 현장 문양을 비교하라.",
-      "정답은 다른 제작자가 완성할 예정인 임시 퍼즐이다.",
+      "두 해바라기 사이에 놓인 그림들만 확인하라.",
+      "글씨가 적힌 작은 조각은 보지 않는다.",
+      "그림만 본다.",
+      "그 안에서 같은 동물이 그려진 그림 두 개를 찾아라.",
+      "그 동물의 이름을 입력하라.",
     ],
     hints: [
-      "초상화는 앞면만 보지 말고 뒷면 기록까지 생각해야 한다.",
-      "누가 사랑했고, 누가 이용했는지를 구분하라.",
+      "연꽃 그림 자체가 정답은 아니다. 연꽃은 벽을 찾기 위한 기준점이다.",
+      "왼쪽 해바라기와 오른쪽 아래 해바라기 사이에 있는 그림들만 확인하라.",
+      "글씨가 적힌 작은 조각은 제외하고, 그림만 보아라.",
+      "같은 동물이 두 번 등장한다. 붉은 벼슬이 단서다.",
     ],
-    answer: "TEMP6",
+    answer: "닭",
+    acceptedAnswers: ["닭", "수탉", "닭그림", "수탉그림"],
   },
   {
     id: "story-7",
@@ -503,21 +625,27 @@ const storyFlow = [
     type: "mission",
     missionId: 7,
     chapter: "마지막 길거리 단서",
-    title: "마지막 어찰",
-    location: "길거리",
-    piece: "마지막 어찰",
+    title: "비밀의 통로를 찾아라",
+    location: "길거리 비밀 통로",
+    piece: "비밀 통로의 영물",
     intro:
-      "D의 음모를 밝히기 위해서는 마지막 암호가 필요하다. 지금까지 모은 단서들이 하나의 답으로 이어진다.",
-    instruction: "누적된 단서들을 조합해 마지막 어찰의 암호를 완성하라.",
+      "청휘의 음모를 밝히기 위해서는 마지막 암호가 필요하다. 지금까지 모은 단서들은 하나의 길을 가리키고 있었다.",
+    instruction:
+      "다음 문구가 가리키는 장소를 찾아라. 그곳을 지키는 영물의 이름을 입력하면 마지막 어찰이 열린다.",
     rule: [
-      "도자기, 매듭, 팔찌, 등불, 서찰, 초상화의 단서를 다시 확인하라.",
-      "정답은 다른 제작자가 완성할 예정인 임시 퍼즐이다.",
+      "「붉은 벽돌이 하늘을 가리고, 하얀 울타리가 호위하는 좁은 길.",
+      "머리 위로 작은 별들이 줄지어 밤을 기다리네.",
+      "은빛 물고기가 허공을 헤엄치고, 그 끝에는 붉은 아치문이 너를 기다리리라.」",
+      "단 한 번의 숨결로 불리고, 가장 긴 몸으로 골목을 수호하는 영물은 무엇인가?",
+      "정답은 한 글자다.",
     ],
     hints: [
-      "각 미션의 답을 그대로 쓰는 것이 아니라, 마지막 어찰의 순서에 맞게 재배열해야 한다.",
-      "D가 숨기려 한 것은 물건이 아니라 사람의 동선과 기록이다.",
+      "문구는 장소의 생김새를 묘사한다. 붉은 벽돌, 하얀 울타리, 별 장식, 은빛 물고기, 붉은 아치문을 찾아라.",
+      "정답은 동물이 아니라, 길을 수호하는 상징적 영물이다.",
+      "한 글자로 불리는 긴 몸의 영물을 떠올려라.",
     ],
-    answer: "TEMP7",
+    answer: "용",
+    acceptedAnswers: ["용", "룡"],
   },
   {
     id: "ending",
@@ -672,6 +800,460 @@ function clampFlowIndex(index) {
   return index;
 }
 
+function makeInitialTileOrder(correctOrder, initialOrder) {
+  if (initialOrder?.length === correctOrder.length) {
+    return initialOrder;
+  }
+
+  const shuffled = [...correctOrder];
+
+  for (let i = shuffled.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+
+  if (shuffled.every((id, index) => id === correctOrder[index])) {
+    [shuffled[0], shuffled[1]] = [shuffled[1], shuffled[0]];
+  }
+
+  return shuffled;
+}
+
+function TileSwapPuzzle({ pieces, initialOrder, onSolved }) {
+  const correctOrder = useMemo(
+    () =>
+      [...pieces]
+        .sort((a, b) => a.correctIndex - b.correctIndex)
+        .map((piece) => piece.id),
+    [pieces],
+  );
+
+  const pieceMap = useMemo(() => {
+    return pieces.reduce((acc, piece) => {
+      acc[piece.id] = piece;
+      return acc;
+    }, {});
+  }, [pieces]);
+
+  const [order, setOrder] = useState(() =>
+    makeInitialTileOrder(correctOrder, initialOrder),
+  );
+  const [selectedIndex, setSelectedIndex] = useState(null);
+  const [isSolved, setIsSolved] = useState(false);
+
+  const handleTileClick = (index) => {
+    if (isSolved) return;
+
+    if (selectedIndex === null) {
+      setSelectedIndex(index);
+      return;
+    }
+
+    if (selectedIndex === index) {
+      setSelectedIndex(null);
+      return;
+    }
+
+    const nextOrder = [...order];
+    [nextOrder[selectedIndex], nextOrder[index]] = [
+      nextOrder[index],
+      nextOrder[selectedIndex],
+    ];
+
+    setOrder(nextOrder);
+    setSelectedIndex(null);
+
+    const solved = nextOrder.every(
+      (id, tileIndex) => id === correctOrder[tileIndex],
+    );
+
+    if (solved) {
+      setIsSolved(true);
+      onSolved?.();
+    }
+  };
+
+  return (
+    <div className="tilePuzzleWrap">
+      <div className="tilePuzzleGrid">
+        {order.map((pieceId, index) => {
+          const piece = pieceMap[pieceId];
+
+          return (
+            <button
+              key={`${pieceId}-${index}`}
+              type="button"
+              className={`tilePuzzlePiece ${
+                selectedIndex === index ? "selected" : ""
+              } ${isSolved ? "solved" : ""}`}
+              onClick={() => handleTileClick(index)}
+            >
+              <img src={piece.image} alt={piece.alt || piece.id} />
+            </button>
+          );
+        })}
+      </div>
+
+      <p className="smallText">
+        조각 하나를 누른 뒤, 다른 조각을 누르면 두 조각의 위치가 바뀝니다.
+      </p>
+
+      {isSolved && (
+        <p className="message successMessage">
+          향 도자기의 본래 형상이 복원되었습니다.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function drawVideoCover(video, ctx, canvasWidth, canvasHeight) {
+  const videoWidth = video.videoWidth;
+  const videoHeight = video.videoHeight;
+
+  const canvasRatio = canvasWidth / canvasHeight;
+  const videoRatio = videoWidth / videoHeight;
+
+  let sourceX = 0;
+  let sourceY = 0;
+  let sourceWidth = videoWidth;
+  let sourceHeight = videoHeight;
+
+  if (videoRatio > canvasRatio) {
+    sourceWidth = videoHeight * canvasRatio;
+    sourceX = (videoWidth - sourceWidth) / 2;
+  } else {
+    sourceHeight = videoWidth / canvasRatio;
+    sourceY = (videoHeight - sourceHeight) / 2;
+  }
+
+  ctx.drawImage(
+    video,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    canvasWidth,
+    canvasHeight,
+  );
+}
+
+function makeImageSignature(source) {
+  const size = 64;
+  const canvas = document.createElement("canvas");
+  canvas.width = size;
+  canvas.height = size;
+
+  const ctx = canvas.getContext("2d", { willReadFrequently: true });
+  ctx.drawImage(source, 0, 0, size, size);
+
+  const imageData = ctx.getImageData(0, 0, size, size).data;
+
+  const gray = new Float32Array(size * size);
+
+  for (let i = 0; i < size * size; i += 1) {
+    const r = imageData[i * 4];
+    const g = imageData[i * 4 + 1];
+    const b = imageData[i * 4 + 2];
+
+    gray[i] = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+
+  const edges = [];
+
+  for (let y = 1; y < size - 1; y += 1) {
+    for (let x = 1; x < size - 1; x += 1) {
+      const i = y * size + x;
+
+      const gx = gray[i + 1] - gray[i - 1];
+      const gy = gray[i + size] - gray[i - size];
+
+      edges.push(Math.sqrt(gx * gx + gy * gy));
+    }
+  }
+
+  const histogram = new Array(16).fill(0);
+
+  for (let i = 0; i < gray.length; i += 1) {
+    const bin = Math.min(15, Math.floor(gray[i] * 16));
+    histogram[bin] += 1;
+  }
+
+  const total = gray.length;
+
+  return {
+    edges,
+    histogram: histogram.map((value) => value / total),
+  };
+}
+
+function cosineSimilarity(a, b) {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+
+  for (let i = 0; i < a.length; i += 1) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+
+  if (!normA || !normB) return 0;
+
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
+function histogramSimilarity(a, b) {
+  let score = 0;
+
+  for (let i = 0; i < a.length; i += 1) {
+    score += Math.min(a[i], b[i]);
+  }
+
+  return score;
+}
+
+function compareImageSignatures(targetSignature, cameraSignature) {
+  const edgeScore = cosineSimilarity(
+    targetSignature.edges,
+    cameraSignature.edges,
+  );
+
+  const histScore = histogramSimilarity(
+    targetSignature.histogram,
+    cameraSignature.histogram,
+  );
+
+  return edgeScore * 0.7 + histScore * 0.3;
+}
+
+function loadTargetImage(src) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.crossOrigin = "anonymous";
+
+    image.onload = () => resolve(image);
+    image.onerror = () =>
+      reject(new Error("기준 이미지를 불러오지 못했습니다."));
+
+    image.src = src;
+  });
+}
+
+function ARScanGate({
+  targetImage,
+  matchThreshold = 0.55,
+  maxFailCount = 3,
+  onCompleted,
+}) {
+  const videoRef = useRef(null);
+  const streamRef = useRef(null);
+  const targetSignatureRef = useRef(null);
+
+  const [cameraError, setCameraError] = useState("");
+  const [scanMessage, setScanMessage] = useState("");
+  const [isScanning, setIsScanning] = useState(false);
+  const [lastScore, setLastScore] = useState(null);
+  const [failCount, setFailCount] = useState(0);
+
+  const fallbackVisible = failCount >= maxFailCount || !!cameraError;
+
+  useEffect(() => {
+    const startCamera = async () => {
+      try {
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setCameraError("이 브라우저에서는 카메라를 사용할 수 없습니다.");
+          return;
+        }
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: { ideal: "environment" },
+          },
+          audio: false,
+        });
+
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          await videoRef.current.play();
+        }
+      } catch {
+        setCameraError(
+          "카메라 권한을 허용해야 간판 확인을 진행할 수 있습니다.",
+        );
+      }
+    };
+
+    startCamera();
+
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
+  const handleScan = async () => {
+    if (isScanning || !videoRef.current) return;
+
+    setIsScanning(true);
+    setScanMessage("");
+
+    try {
+      const video = videoRef.current;
+
+      if (!video.videoWidth || !video.videoHeight) {
+        setScanMessage(
+          "카메라가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.",
+        );
+        setIsScanning(false);
+        return;
+      }
+
+      if (!targetSignatureRef.current) {
+        const target = await loadTargetImage(targetImage);
+        targetSignatureRef.current = makeImageSignature(target);
+      }
+
+      const frameCanvas = document.createElement("canvas");
+      frameCanvas.width = 480;
+      frameCanvas.height = 640;
+
+      const frameCtx = frameCanvas.getContext("2d", {
+        willReadFrequently: true,
+      });
+
+      drawVideoCover(video, frameCtx, frameCanvas.width, frameCanvas.height);
+
+      const guideX = frameCanvas.width * 0.09;
+      const guideY = frameCanvas.height * 0.24;
+      const guideW = frameCanvas.width * 0.82;
+      const guideH = frameCanvas.height * 0.52;
+
+      const cropCanvas = document.createElement("canvas");
+      cropCanvas.width = 320;
+      cropCanvas.height = 203;
+
+      const cropCtx = cropCanvas.getContext("2d", {
+        willReadFrequently: true,
+      });
+
+      cropCtx.drawImage(
+        frameCanvas,
+        guideX,
+        guideY,
+        guideW,
+        guideH,
+        0,
+        0,
+        cropCanvas.width,
+        cropCanvas.height,
+      );
+
+      const cameraSignature = makeImageSignature(cropCanvas);
+
+      const score = compareImageSignatures(
+        targetSignatureRef.current,
+        cameraSignature,
+      );
+
+      setLastScore(score);
+
+      if (score >= matchThreshold) {
+        setScanMessage("간판 확인 완료. 다음 조사로 이동합니다.");
+
+        setTimeout(() => {
+          onCompleted?.();
+        }, 700);
+
+        return;
+      }
+
+      const nextFailCount = failCount + 1;
+      setFailCount(nextFailCount);
+
+      setScanMessage(
+        `간판이 아직 충분히 맞지 않았습니다. 현재 유사도 ${Math.round(
+          score * 100,
+        )}% / 필요 유사도 ${Math.round(matchThreshold * 100)}%`,
+      );
+    } catch {
+      setScanMessage("간판 판정 중 문제가 발생했습니다. 다시 시도하세요.");
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  return (
+    <div className="arScanBox">
+      <h3>간판 AR 확인</h3>
+
+      <p>
+        반투명 기준 이미지와 실제 가게 간판이 최대한 겹치도록 카메라를 맞춘 뒤
+        판정하세요.
+      </p>
+
+      <div className="arCameraFrame">
+        <video ref={videoRef} className="arVideo" autoPlay playsInline muted />
+
+        {targetImage && (
+          <img
+            className="arOverlayImage"
+            src={targetImage}
+            alt="간판 기준 이미지"
+          />
+        )}
+
+        <div className="arFrameGuide" />
+      </div>
+
+      {lastScore !== null && (
+        <div className="arScoreBox">
+          <div className="arScoreText">
+            유사도 {Math.round(lastScore * 100)}%
+          </div>
+          <div className="arScoreMeter">
+            <div
+              className="arScoreFill"
+              style={{
+                width: `${Math.min(100, Math.round(lastScore * 100))}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {cameraError && <p className="message">{cameraError}</p>}
+      {scanMessage && <p className="message">{scanMessage}</p>}
+
+      <button onClick={handleScan} disabled={isScanning || !targetImage}>
+        {isScanning ? "간판을 판정하는 중..." : "간판 판정하기"}
+      </button>
+
+      {fallbackVisible && (
+        <button
+          className="secondaryButton"
+          onClick={() => {
+            setScanMessage("수동 확인으로 다음 조사에 진입합니다.");
+            onCompleted?.();
+          }}
+        >
+          인식이 계속 실패합니다
+        </button>
+      )}
+
+      <p className="smallText">
+        너무 어둡거나, 간판이 화면에서 작거나, 각도가 많이 틀어지면 유사도가
+        낮게 나올 수 있습니다.
+      </p>
+    </div>
+  );
+}
+
 function App() {
   const [screen, setScreen] = useState("landing");
   const [inputCode, setInputCode] = useState("");
@@ -689,8 +1271,17 @@ function App() {
   const [missionStartTime, setMissionStartTime] = useState(null);
   const [missionTimes, setMissionTimes] = useState({});
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(false);
+  const [arScanDone, setArScanDone] = useState(false);
 
   const currentNode = storyFlow[flowIndex] || storyFlow[0];
+
+  useEffect(() => {
+    setMissionPuzzleSolved(false);
+    setArScanDone(false);
+    setAnswer("");
+    setMessage("");
+  }, [flowIndex]);
 
   const missionNodes = useMemo(
     () => storyFlow.filter((node) => node.type === "mission"),
@@ -893,9 +1484,15 @@ function App() {
 
     if (!isTemporaryMission) {
       const userAnswer = normalizeAnswer(answer);
-      const correctAnswer = normalizeAnswer(currentNode.answer);
+      const acceptedAnswers = currentNode.acceptedAnswers || [
+        currentNode.answer,
+      ];
 
-      if (userAnswer !== correctAnswer) {
+      const isCorrect = acceptedAnswers.some(
+        (correct) => userAnswer === normalizeAnswer(correct),
+      );
+
+      if (!isCorrect) {
         setMessage(
           "아직 진실에 닿지 못했습니다. 현장의 단서와 순서를 다시 확인해보세요.",
         );
@@ -1026,19 +1623,6 @@ function App() {
               <li key={item}>{item}</li>
             ))}
           </ul>
-        </section>
-
-        <section className="card">
-          <p className="sectionLabel">Clue Preview</p>
-          <h2>흔들리는 혼례의 단서</h2>
-          <div className="pieceGrid">
-            <span className="piece">깨진 도자기</span>
-            <span className="piece">끊어진 매듭</span>
-            <span className="piece">사라진 팔찌</span>
-            <span className="piece">등불 문양</span>
-            <span className="piece">가짜 서찰</span>
-            <span className="piece locked">닫힌 진실</span>
-          </div>
         </section>
 
         <section className="card warning">
@@ -1215,35 +1799,110 @@ function App() {
 
         {currentNode.type === "mission" && (
           <>
-            <header className="missionHeader">
-              <span>
-                단서 {currentMissionOrder} / {missionNodes.length}
-              </span>
-              <span>{formatTime(elapsedSeconds)}</span>
-            </header>
-
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
 
             <section className="card">
               <p className="sectionLabel">Location Guide</p>
               <h2>이동 안내</h2>
-              <p>{currentNode.location}</p>
+
+              {currentNode.letterParagraphs ? (
+                <>
+                  <p className="locationText">장소: {currentNode.location}</p>
+                  <h3>{currentNode.letterTitle || "서찰"}</h3>
+                  {currentNode.letterParagraphs.map((text, index) => (
+                    <p key={`${currentNode.id}-letter-${index}`}>{text}</p>
+                  ))}
+                </>
+              ) : (
+                <p>{currentNode.location}</p>
+              )}
             </section>
 
             <section className="card">
               <p className="sectionLabel">Case Record</p>
-              <h2>사건 기록</h2>
-              <p>{currentNode.intro}</p>
+              <h2>{currentNode.recordTitle || "사건 기록"}</h2>
+
+              {currentNode.recordParagraphs ? (
+                currentNode.recordParagraphs.map((text, index) => (
+                  <p key={`${currentNode.id}-record-${index}`}>{text}</p>
+                ))
+              ) : (
+                <p>{currentNode.intro}</p>
+              )}
             </section>
 
             <section className="card answerCard">
               <p className="sectionLabel">Investigation Question</p>
               <h2>조사 문제</h2>
 
-              {currentNode.instruction && <p>{currentNode.instruction}</p>}
+              {currentNode.puzzleType === "tile-swap" ? (
+                <>
+                  <p>{currentNode.instruction}</p>
 
-              {currentNode.contentBlocks ? (
+                  <TileSwapPuzzle
+                    pieces={currentNode.puzzlePieces}
+                    initialOrder={currentNode.initialOrder}
+                    onSolved={() => {
+                      setMissionPuzzleSolved(true);
+                      setMessage("");
+                    }}
+                  />
+
+                  {missionPuzzleSolved && !arScanDone && (
+                    <>
+                      <div className="ruleBox arBox">
+                        <h3>{currentNode.afterPuzzleTitle}</h3>
+                        <p>{currentNode.afterPuzzleText}</p>
+                      </div>
+
+                      <ARScanGate
+                        targetImage={currentNode.arTargetImage}
+                        matchThreshold={currentNode.arMatchThreshold || 0.55}
+                        maxFailCount={currentNode.arMaxFailCount || 3}
+                        onCompleted={() => {
+                          setArScanDone(true);
+                          setMessage("");
+                        }}
+                      />
+                    </>
+                  )}
+
+                  {missionPuzzleSolved && arScanDone && (
+                    <>
+                      <div className="choiceQuestionBox">
+                        <h3>{currentNode.choiceQuestion.title}</h3>
+                        <p>{currentNode.choiceQuestion.description}</p>
+
+                        <div className="choiceList">
+                          {currentNode.choiceQuestion.choices.map((choice) => (
+                            <button
+                              key={choice.value}
+                              type="button"
+                              className={`choiceButton ${
+                                answer === choice.value ? "selected" : ""
+                              }`}
+                              onClick={() => {
+                                setAnswer(choice.value);
+                                setMessage("");
+                              }}
+                            >
+                              {choice.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <button
+                        className="choiceSubmitButton"
+                        onClick={submitMissionAnswer}
+                        disabled={!answer}
+                      >
+                        단서 확인
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : currentNode.contentBlocks ? (
                 <div className="missionContentFlow">
                   {currentNode.contentBlocks.map((block, index) => {
                     if (block.type === "text") {
@@ -1284,9 +1943,29 @@ function App() {
 
                     return null;
                   })}
+
+                  <div className="answerBox">
+                    <input
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      placeholder={
+                        currentNode.answer?.startsWith("TEMP")
+                          ? "임시 퍼즐입니다"
+                          : "정답을 입력하세요"
+                      }
+                    />
+
+                    <button onClick={submitMissionAnswer}>
+                      {currentNode.answer?.startsWith("TEMP")
+                        ? "임시로 진행하기"
+                        : "단서 확인"}
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <>
+                  <p>{currentNode.instruction}</p>
+
                   {currentNode.image && (
                     <img
                       className="missionImage"
@@ -1315,47 +1994,28 @@ function App() {
                       ))}
                     </div>
                   )}
+
+                  <div className="answerBox">
+                    <input
+                      value={answer}
+                      onChange={(e) => setAnswer(e.target.value)}
+                      placeholder={
+                        currentNode.answer?.startsWith("TEMP")
+                          ? "임시 퍼즐입니다"
+                          : "정답을 입력하세요"
+                      }
+                    />
+
+                    <button onClick={submitMissionAnswer}>
+                      {currentNode.answer?.startsWith("TEMP")
+                        ? "임시로 진행하기"
+                        : "단서 확인"}
+                    </button>
+                  </div>
                 </>
               )}
 
-              <div className="answerBox">
-                <input
-                  value={answer}
-                  onChange={(e) => setAnswer(e.target.value)}
-                  placeholder={
-                    currentNode.answer?.startsWith("TEMP")
-                      ? "임시 퍼즐입니다"
-                      : "정답을 입력하세요"
-                  }
-                />
-
-                <button onClick={submitMissionAnswer}>
-                  {currentNode.answer?.startsWith("TEMP")
-                    ? "임시로 진행하기"
-                    : "단서 확인"}
-                </button>
-              </div>
-            </section>
-
-            <section className="card hintCard">
-              <p className="sectionLabel">Hint</p>
-              <h2>힌트</h2>
-
-              {currentNode.hints?.map((hint, index) => (
-                <div
-                  key={`${currentNode.id}-hint-${index}`}
-                  className="hintBlock"
-                >
-                  <button
-                    className="secondaryButton"
-                    onClick={() => openHint(index)}
-                  >
-                    힌트 {index + 1} 보기
-                  </button>
-
-                  {isHintOpen(index) && <p className="hint">{hint}</p>}
-                </div>
-              ))}
+              {message && <p className="message">{message}</p>}
             </section>
 
             <button

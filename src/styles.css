@@ -624,3 +624,17 @@ button {
   color: #2a2025 !important;
   background: transparent !important;
 }
+
+.missionImageList {
+  display: grid;
+  gap: 14px;
+  margin: 18px 0;
+}
+
+.missionImage {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(210, 174, 95, 0.45);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  object-fit: cover;
+}

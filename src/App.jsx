@@ -68,7 +68,7 @@ const storyFlow = [
       "훼손된 물건들의 기록",
       "조사 지도",
     ],
-    buttonText: "첫 번째 단서로 이동",
+    buttonText: "다음으로",
   },
   {
     id: "mission-1",
@@ -243,21 +243,55 @@ const storyFlow = [
     chapter: "미션 2",
     title: "끊어진 매듭",
     location: "나정희 규방공예",
-    piece: "끊어진 약속 매듭",
+    piece: "복원된 약속 매듭",
+    puzzleType: "stitch-connect",
+
+    stitchImage: "/mission/mission2-stitch/stitch-base.png",
+
+    stitchPoints: [
+      { id: "L1", side: "left", x: 38.5, y: 29 },
+      { id: "L2", side: "left", x: 36.8, y: 35 },
+      { id: "L3", side: "left", x: 31.5, y: 39 },
+      { id: "L4", side: "left", x: 28, y: 43 },
+      { id: "L5", side: "left", x: 25, y: 47 },
+      { id: "L6", side: "left", x: 19.2, y: 52 },
+
+      { id: "R1", side: "right", x: 47.8, y: 29 },
+      { id: "R2", side: "right", x: 49.7, y: 36 },
+      { id: "R3", side: "right", x: 48.2, y: 43 },
+      { id: "R4", side: "right", x: 41, y: 50 },
+      { id: "R5", side: "right", x: 38, y: 57 },
+      { id: "R6", side: "right", x: 36, y: 64 },
+    ],
+
+    stitchPairs: [
+      ["L1", "R1"],
+      ["L2", "R2"],
+      ["L3", "R3"],
+      ["L4", "R4"],
+      ["L5", "R5"],
+      ["L6", "R6"],
+    ],
+
     intro:
-      "두 번째 단서는 끊어진 약속 매듭과 사라진 색실이다. A와 전하가 어린 시절 주고받았던 매듭 장식은 혼인을 약속하는 상징이었지만, 현재는 색실 일부가 사라진 채 발견되었다.",
+      "두 번째 단서는 끊어진 약속 매듭이다. 전하와 연이가 어린 시절 주고받았던 매듭 장식은 혼인을 약속하는 상징이었지만, 지금은 찢기고 끊어진 채 남아 있었다.",
     instruction:
-      "규방공예 공방 주변에서 의궤 속 문양과 실제 매듭의 색 배열을 비교하고, 원래 의미를 복원하라.",
+      "찢어진 자락 양옆에 남은 바느질 자리를 확인하고, 서로 맞닿아야 할 구멍을 이어 매듭을 복원하라.",
     rule: [
-      "사라진 색실이 무엇인지 확인하라.",
-      "색 배열이 바뀌면 문양의 의미도 달라진다.",
-      "정답은 다른 제작자가 완성할 예정인 임시 퍼즐이다.",
+      "왼쪽과 오른쪽의 구멍을 한 쌍씩 이어라.",
+      "같은 쪽 구멍끼리는 이을 수 없다.",
+      "모든 실이 제자리를 찾으면 끊어진 약속의 의미가 다시 드러난다.",
     ],
+    solvedTitle: "복원 완료",
+    solvedText:
+      "찢어진 자락이 다시 이어지자, 매듭 안쪽에 숨겨져 있던 글귀가 드러났다. 『전하의 마음은 어찌 늘 그대에게만 머무는지요.』",
     hints: [
-      "없어진 색을 찾는 것보다, 왜 그 색이 없어졌는지가 중요하다.",
-      "원래의 배열은 A가 약속을 저버린 것이 아니라 지키려 했음을 보여준다.",
+      "찢어진 틈의 양옆을 살펴라. 실이 지나가야 할 구멍들이 남아 있다.",
+      "가장 가까운 맞은편 구멍끼리 차례대로 이어보라.",
+      "위에서 아래로 한 쌍씩 이어가면 매듭의 형태가 안정적으로 복원된다.",
     ],
-    answer: "TEMP2",
+    answer: "STITCH_SOLVED",
+    acceptedAnswers: ["STITCH_SOLVED"],
   },
   {
     id: "story-3",
@@ -944,6 +978,188 @@ function TileSwapPuzzle({ pieces, initialOrder, onSolved }) {
       {isSolved && (
         <p className="message successMessage">
           향 도자기의 본래 형상이 복원되었습니다.
+        </p>
+      )}
+    </div>
+  );
+}
+
+function getStitchPairKey(a, b) {
+  return [a, b].sort().join("__");
+}
+
+function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
+  const pointMap = useMemo(() => {
+    return points.reduce((acc, point) => {
+      acc[point.id] = point;
+      return acc;
+    }, {});
+  }, [points]);
+
+  const correctPairKeys = useMemo(() => {
+    return new Set(correctPairs.map(([a, b]) => getStitchPairKey(a, b)));
+  }, [correctPairs]);
+
+  const [selectedPointId, setSelectedPointId] = useState(null);
+  const [connections, setConnections] = useState([]);
+  const [wrongPairKey, setWrongPairKey] = useState("");
+  const [notice, setNotice] = useState("");
+  const [isSolved, setIsSolved] = useState(false);
+
+  const connectedPointIds = useMemo(() => {
+    const ids = new Set();
+
+    connections.forEach(([a, b]) => {
+      ids.add(a);
+      ids.add(b);
+    });
+
+    return ids;
+  }, [connections]);
+
+  const handlePointClick = (pointId) => {
+    if (isSolved) return;
+    if (connectedPointIds.has(pointId)) {
+      setNotice("이미 실이 지나간 자리입니다.");
+      return;
+    }
+
+    if (!selectedPointId) {
+      setSelectedPointId(pointId);
+      setNotice("반대편 구멍을 선택하세요.");
+      return;
+    }
+
+    if (selectedPointId === pointId) {
+      setSelectedPointId(null);
+      setNotice("");
+      return;
+    }
+
+    const fromPoint = pointMap[selectedPointId];
+    const toPoint = pointMap[pointId];
+
+    if (!fromPoint || !toPoint) return;
+
+    if (fromPoint.side === toPoint.side) {
+      setWrongPairKey(getStitchPairKey(selectedPointId, pointId));
+      setNotice("같은 쪽 구멍끼리는 이을 수 없습니다.");
+      setSelectedPointId(null);
+
+      setTimeout(() => {
+        setWrongPairKey("");
+      }, 450);
+
+      return;
+    }
+
+    const pairKey = getStitchPairKey(selectedPointId, pointId);
+
+    if (!correctPairKeys.has(pairKey)) {
+      setWrongPairKey(pairKey);
+      setNotice(
+        "실의 방향이 어긋났습니다. 찢어진 자락의 맞은편 구멍을 다시 살피세요.",
+      );
+      setSelectedPointId(null);
+
+      setTimeout(() => {
+        setWrongPairKey("");
+      }, 450);
+
+      return;
+    }
+
+    const nextConnections = [...connections, [selectedPointId, pointId]];
+    setConnections(nextConnections);
+    setSelectedPointId(null);
+    setNotice("");
+
+    if (nextConnections.length === correctPairs.length) {
+      setIsSolved(true);
+      setNotice("끊어진 매듭이 다시 이어졌습니다.");
+      onSolved?.();
+    }
+  };
+
+  return (
+    <div className="stitchPuzzleWrap">
+      <div className="stitchCanvas">
+        <img
+          className="stitchBaseImage"
+          src={image}
+          alt="찢어진 매듭 복원 퍼즐"
+        />
+
+        <svg
+          className="stitchSvg"
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+        >
+          {connections.map(([fromId, toId]) => {
+            const from = pointMap[fromId];
+            const to = pointMap[toId];
+
+            return (
+              <line
+                key={`${fromId}-${toId}`}
+                className="stitchLine"
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+              />
+            );
+          })}
+
+          {wrongPairKey &&
+            (() => {
+              const [a, b] = wrongPairKey.split("__");
+              const from = pointMap[a];
+              const to = pointMap[b];
+
+              if (!from || !to) return null;
+
+              return (
+                <line
+                  className="stitchLine wrong"
+                  x1={from.x}
+                  y1={from.y}
+                  x2={to.x}
+                  y2={to.y}
+                />
+              );
+            })()}
+        </svg>
+
+        {points.map((point) => {
+          const isSelected = selectedPointId === point.id;
+          const isConnected = connectedPointIds.has(point.id);
+
+          return (
+            <button
+              key={point.id}
+              type="button"
+              className={`stitchPoint ${point.side} ${
+                isSelected ? "selected" : ""
+              } ${isConnected ? "connected" : ""}`}
+              style={{
+                left: `${point.x}%`,
+                top: `${point.y}%`,
+              }}
+              onClick={() => handlePointClick(point.id)}
+              aria-label={`${point.id} 바느질 구멍`}
+            />
+          );
+        })}
+      </div>
+
+      <p className="smallText">
+        한쪽 구멍을 누른 뒤, 반대편 구멍을 눌러 찢어진 자락을 이어주세요.
+      </p>
+
+      {notice && (
+        <p className={`message ${isSolved ? "successMessage" : ""}`}>
+          {notice}
         </p>
       )}
     </div>
@@ -1935,10 +2151,50 @@ function App() {
                           ))}
                         </div>
                       </div>
+
                       <button
                         className="choiceSubmitButton"
                         onClick={submitMissionAnswer}
                         disabled={!answer}
+                      >
+                        단서 확인
+                      </button>
+                    </>
+                  )}
+                </>
+              ) : currentNode.puzzleType === "stitch-connect" ? (
+                <>
+                  <p>{currentNode.instruction}</p>
+
+                  {currentNode.rule && (
+                    <div className="ruleBox">
+                      {currentNode.rule.map((rule, index) => (
+                        <p key={`${currentNode.id}-rule-${index}`}>{rule}</p>
+                      ))}
+                    </div>
+                  )}
+
+                  <StitchConnectPuzzle
+                    image={currentNode.stitchImage}
+                    points={currentNode.stitchPoints}
+                    correctPairs={currentNode.stitchPairs}
+                    onSolved={() => {
+                      setMissionPuzzleSolved(true);
+                      setAnswer(currentNode.answer || "STITCH_SOLVED");
+                      setMessage("");
+                    }}
+                  />
+
+                  {missionPuzzleSolved && (
+                    <>
+                      <div className="ruleBox">
+                        <h3>{currentNode.solvedTitle || "복원 완료"}</h3>
+                        <p>{currentNode.solvedText}</p>
+                      </div>
+
+                      <button
+                        className="choiceSubmitButton"
+                        onClick={submitMissionAnswer}
                       >
                         단서 확인
                       </button>

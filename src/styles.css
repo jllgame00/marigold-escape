@@ -1172,3 +1172,74 @@ input::placeholder {
   transform: translateY(-1px);
   filter: brightness(1.08);
 }
+
+.couponCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.couponCard::before {
+  content: "";
+  position: absolute;
+  inset: 16px;
+  border: 1px dashed rgba(217, 189, 122, 0.45);
+  border-radius: 18px;
+  pointer-events: none;
+}
+
+.couponStampBox {
+  display: grid;
+  gap: 6px;
+  margin: 18px 0;
+  padding: 18px;
+  border: 1px solid rgba(217, 189, 122, 0.45);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(217, 189, 122, 0.2),
+      transparent 36%
+    ),
+    rgba(255, 247, 232, 0.08);
+  text-align: center;
+}
+
+.couponStampBox span {
+  color: #9b6a24;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+}
+
+.couponStampBox strong {
+  color: #2a1617;
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.couponInfoBox {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.couponInfoBox p {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 12px 14px;
+  border: 1px solid rgba(217, 189, 122, 0.28);
+  border-radius: 14px;
+  background: rgba(18, 12, 18, 0.35);
+}
+
+.couponInfoBox strong {
+  color: rgba(255, 247, 232, 0.72);
+}
+
+.couponInfoBox span {
+  color: #fff7e8;
+  font-weight: 900;
+  text-align: right;
+}

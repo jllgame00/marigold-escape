@@ -781,7 +781,33 @@ function getFastestWorkshop(missionTimes) {
 }
 
 function normalizeAnswer(value) {
-  return String(value).trim().toLowerCase().replace(/\s/g, "");
+  return String(value || "")
+    .trim()
+    .replace(/\s/g, "")
+    .toLowerCase();
+}
+
+function getCouponExpireDateText() {
+  const today = new Date();
+
+  const targetYear = today.getFullYear();
+  const targetMonth = today.getMonth() + 1;
+
+  const lastDayOfTargetMonth = new Date(
+    targetYear,
+    targetMonth + 1,
+    0,
+  ).getDate();
+
+  const expireDate = new Date(
+    targetYear,
+    targetMonth,
+    Math.min(today.getDate(), lastDayOfTargetMonth),
+  );
+
+  return `${expireDate.getFullYear()}년 ${
+    expireDate.getMonth() + 1
+  }월 ${expireDate.getDate()}일`;
 }
 
 function sanitizeScreen(screen) {
@@ -792,6 +818,7 @@ function sanitizeScreen(screen) {
     "flow",
     "progress",
     "clear",
+    "coupon",
     "leaderboard",
   ];
 
@@ -2469,14 +2496,77 @@ function App() {
         <section className="card">
           <p className="sectionLabel">Reward</p>
           <h2>보상 안내</h2>
-          <p>이 화면을 제시하면 클리어 인증과 연계 혜택을 받을 수 있습니다.</p>
+          <p>
+            다음 화면을 제시하면 클리어 인증과 연계 혜택을 받을 수 있습니다.
+          </p>
+        </section>
+
+        <section className="card">
+          <p className="sectionLabel">Reward</p>
+          <h2>보상 안내</h2>
+          <p>다음 화면을 제시하면 메리골드 클리어 혜택을 받을 수 있습니다.</p>
+        </section>
+
+        <button onClick={() => setScreen("coupon")}>
+          메리골드 쿠폰 확인하기
+        </button>
+
+        <button className="secondaryButton" onClick={resetGame}>
+          처음부터 다시 하기
+        </button>
+      </main>
+    );
+  }
+
+  if (screen === "coupon") {
+    const couponExpireDateText = getCouponExpireDateText();
+
+    return (
+      <main className="page centerPage">
+        <p className="eyebrow">Marigold Coupon</p>
+        <h1>메리골드 클리어 혜택</h1>
+
+        <section className="card couponCard">
+          <p className="sectionLabel">Reward Coupon</p>
+          <h2>공방거리 탐정단 특별 쿠폰</h2>
+
+          <div className="couponStampBox">
+            <span>MERIGOLD</span>
+            <strong>방탈출 클리어 인증</strong>
+          </div>
+
+          <p>
+            이 화면을 메리골드 매장에 제시하면, 현장에서 사용 가능한 클리어
+            혜택을 받을 수 있습니다.
+          </p>
+
+          <div className="couponInfoBox">
+            <p>
+              <strong>사용처</strong>
+              <span>메리골드</span>
+            </p>
+            <p>
+              <strong>사용 기한</strong>
+              <span>~ {couponExpireDateText}</span>
+            </p>
+            <p>
+              <strong>조사관</strong>
+              <span>{teamName}</span>
+            </p>
+          </div>
+
+          <p className="smallText">
+            바코드 없이 매장 확인용으로 사용하는 쿠폰입니다. 매장 직원 확인 후
+            혜택이 적용됩니다.
+          </p>
         </section>
 
         <button onClick={() => setScreen("leaderboard")}>
           오늘의 조사 랭킹 보기
         </button>
-        <button className="secondaryButton" onClick={resetGame}>
-          처음부터 다시 하기
+
+        <button className="secondaryButton" onClick={() => setScreen("clear")}>
+          클리어 인증으로 돌아가기
         </button>
       </main>
     );

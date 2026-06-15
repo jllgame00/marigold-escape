@@ -1142,3 +1142,33 @@ input::placeholder {
   aspect-ratio: 16 / 9;
   background: #080608;
 }
+.videoSpeedControls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid rgba(210, 174, 95, 0.28);
+  background: rgba(18, 12, 18, 0.72);
+}
+
+.videoSpeedButton {
+  min-height: 34px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(217, 189, 122, 0.42);
+  background: rgba(255, 247, 232, 0.08);
+  color: #f8f1e7;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.videoSpeedButton.active {
+  border-color: rgba(217, 189, 122, 0.85);
+  background: rgba(217, 189, 122, 0.22);
+  color: #fff7e8;
+}
+
+.videoSpeedButton:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+}

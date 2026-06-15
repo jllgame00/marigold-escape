@@ -1099,6 +1099,50 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
   );
 }
 
+function StoryVideo({ src, poster }) {
+  const videoRef = useRef(null);
+  const [playbackRate, setPlaybackRate] = useState(1);
+
+  const changePlaybackRate = (rate) => {
+    setPlaybackRate(rate);
+
+    if (videoRef.current) {
+      videoRef.current.playbackRate = rate;
+    }
+  };
+
+  return (
+    <div className="storyVideoWrap">
+      <video
+        ref={videoRef}
+        className="storyVideo"
+        src={src}
+        poster={poster}
+        controls
+        playsInline
+        preload="metadata"
+      >
+        이 브라우저에서는 영상을 재생할 수 없습니다.
+      </video>
+
+      <div className="videoSpeedControls" aria-label="영상 재생 속도">
+        {[0.75, 1, 1.25, 1.5, 2].map((rate) => (
+          <button
+            key={rate}
+            type="button"
+            className={`videoSpeedButton ${
+              playbackRate === rate ? "active" : ""
+            }`}
+            onClick={() => changePlaybackRate(rate)}
+          >
+            {rate}x
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function drawVideoCover(video, ctx, canvasWidth, canvasHeight) {
   const videoWidth = video.videoWidth;
   const videoHeight = video.videoHeight;
@@ -1960,18 +2004,10 @@ function App() {
               )}
 
               {currentNode.video && (
-                <div className="storyVideoWrap">
-                  <video
-                    className="storyVideo"
-                    src={currentNode.video}
-                    poster={currentNode.videoPoster}
-                    controls
-                    playsInline
-                    preload="metadata"
-                  >
-                    이 브라우저에서는 영상을 재생할 수 없습니다.
-                  </video>
-                </div>
+                <StoryVideo
+                  src={currentNode.video}
+                  poster={currentNode.videoPoster}
+                />
               )}
 
               {currentNode.paragraphs.map((text, index) => (

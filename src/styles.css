@@ -1123,3 +1123,22 @@ input::placeholder {
   cursor: not-allowed;
   box-shadow: none;
 }
+
+.storyVideoWrap {
+  width: 100%;
+  margin: 18px 0 20px;
+  overflow: hidden;
+  border: 1px solid rgba(210, 174, 95, 0.45);
+  border-radius: 20px;
+  background: rgba(20, 14, 18, 0.72);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.storyVideo {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: #080608;
+}

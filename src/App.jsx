@@ -265,12 +265,12 @@ const storyFlow = [
     ],
 
     stitchPairs: [
-      ["L1", "R1"],
+      ["R1", "L1"],
       ["L2", "R2"],
       ["L3", "R3"],
-      ["L4", "R4"],
+      ["R4", "L4"],
       ["L5", "R5"],
-      ["L6", "R6"],
+      ["R6", "L6"],
     ],
 
     intro:
@@ -949,6 +949,10 @@ function getStitchPairKey(a, b) {
   return [a, b].sort().join("__");
 }
 
+function getDirectedStitchPairKey(from, to) {
+  return `${from}__${to}`;
+}
+
 function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
   const pointMap = useMemo(() => {
     return points.reduce((acc, point) => {
@@ -958,7 +962,11 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
   }, [points]);
 
   const correctPairKeys = useMemo(() => {
-    return new Set(correctPairs.map(([a, b]) => getStitchPairKey(a, b)));
+    return new Set(
+      correctPairs.map(([fromId, toId]) =>
+        getDirectedStitchPairKey(fromId, toId),
+      ),
+    );
   }, [correctPairs]);
 
   const [selectedPointId, setSelectedPointId] = useState(null);
@@ -1003,7 +1011,7 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
     if (!fromPoint || !toPoint) return;
 
     if (fromPoint.side === toPoint.side) {
-      setWrongPairKey(getStitchPairKey(selectedPointId, pointId));
+      setWrongPairKey(getDirectedStitchPairKey(selectedPointId, pointId));
       setNotice("같은 쪽 구멍끼리는 이을 수 없습니다.");
       setSelectedPointId(null);
 
@@ -1014,12 +1022,12 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
       return;
     }
 
-    const pairKey = getStitchPairKey(selectedPointId, pointId);
+    const pairKey = getDirectedStitchPairKey(selectedPointId, pointId);
 
     if (!correctPairKeys.has(pairKey)) {
       setWrongPairKey(pairKey);
       setNotice(
-        "실의 방향이 어긋났습니다. 찢어진 자락의 맞은편 구멍을 다시 살피세요.",
+        "실의 방향이 어긋났습니다. 왼쪽 구멍에서 오른쪽 구멍으로 이어주세요.",
       );
       setSelectedPointId(null);
 
@@ -1843,62 +1851,62 @@ function App() {
 
   const renderLandingContent = () => (
     <>
-        <section className="hero heroVisual">
-          <img
-            className="heroImage"
-            src={heroImg}
-            alt="왕, 왕비 후보 A, 왕비 후보 C"
-          />
-          <div className="heroOverlay" />
-          <div className="heroContent">
-            <p className="eyebrow">궁중 공방 미스터리 야외 방탈출</p>
-            <h1>{gameConfig.title}</h1>
-            <p className="heroSubtitle">{gameConfig.subtitle}</p>
-            <p className="heroCopy">
-              혼례를 앞둔 궁궐.
-              <br />
-              사라진 물건과 조작된 서찰이 오래된 약속을 흔든다.
-            </p>
+      <section className="hero heroVisual">
+        <img
+          className="heroImage"
+          src={heroImg}
+          alt="왕, 왕비 후보 A, 왕비 후보 C"
+        />
+        <div className="heroOverlay" />
+        <div className="heroContent">
+          <p className="eyebrow">궁중 공방 미스터리 야외 방탈출</p>
+          <h1>{gameConfig.title}</h1>
+          <p className="heroSubtitle">{gameConfig.subtitle}</p>
+          <p className="heroCopy">
+            혼례를 앞둔 궁궐.
+            <br />
+            사라진 물건과 조작된 서찰이 오래된 약속을 흔든다.
+          </p>
 
-            <div className="royalStatRow">
-              <span className="royalStat">⏳ {gameConfig.playTime}</span>
-              <span className="royalStat">👥 {gameConfig.players}</span>
-              <span className="royalStat">📍 행궁동 공방거리</span>
-            </div>
+          <div className="royalStatRow">
+            <span className="royalStat">⏳ {gameConfig.playTime}</span>
+            <span className="royalStat">👥 {gameConfig.players}</span>
+            <span className="royalStat">📍 행궁동 공방거리</span>
           </div>
-        </section>
+        </div>
+      </section>
 
-        <section className="card">
-          <p className="sectionLabel">Investigation Guide</p>
-          <h2>조사 안내</h2>
-          <ul>
-            <li>예상 시간: {gameConfig.playTime}</li>
-            <li>권장 인원: {gameConfig.players}</li>
-            <li>준비물: {gameConfig.requiredItems.join(", ")}</li>
-          </ul>
-        </section>
+      <section className="card">
+        <p className="sectionLabel">Investigation Guide</p>
+        <h2>조사 안내</h2>
+        <ul>
+          <li>예상 시간: {gameConfig.playTime}</li>
+          <li>권장 인원: {gameConfig.players}</li>
+          <li>준비물: {gameConfig.requiredItems.join(", ")}</li>
+        </ul>
+      </section>
 
-        <section className="card">
-          <p className="sectionLabel">Kit Contents</p>
-          <h2>봉투 속 단서</h2>
-          <ul>
-            {gameConfig.kitItems.map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </section>
+      <section className="card">
+        <p className="sectionLabel">Kit Contents</p>
+        <h2>봉투 속 단서</h2>
+        <ul>
+          {gameConfig.kitItems.map((item) => (
+            <li key={item}>{item}</li>
+          ))}
+        </ul>
+      </section>
 
-        <section className="card warning">
-          <p className="sectionLabel">Notice</p>
-          <h2>조사관 주의사항</h2>
-          <p>길을 건널 때는 스마트폰을 보지 말고 주변을 확인해주세요.</p>
-          <p>매장 영업을 방해하지 않도록 외부 단서 중심으로 진행해주세요.</p>
-          <p>막히는 구간에서는 힌트를 사용해도 기록은 계속 이어집니다.</p>
-        </section>
+      <section className="card warning">
+        <p className="sectionLabel">Notice</p>
+        <h2>조사관 주의사항</h2>
+        <p>길을 건널 때는 스마트폰을 보지 말고 주변을 확인해주세요.</p>
+        <p>매장 영업을 방해하지 않도록 외부 단서 중심으로 진행해주세요.</p>
+        <p>막히는 구간에서는 힌트를 사용해도 기록은 계속 이어집니다.</p>
+      </section>
 
-        <button className="mainStartButton" onClick={() => setScreen("code")}>
-          조사 시작하기
-        </button>
+      <button className="mainStartButton" onClick={() => setScreen("code")}>
+        조사 시작하기
+      </button>
     </>
   );
 
@@ -1923,9 +1931,7 @@ function App() {
         <section className="posterEnterSection">
           <p className="eyebrow">Royal Mystery Escape</p>
           <h1>조사 준비가 끝났습니다</h1>
-          <p>
-            포스터의 단서를 확인했다면, 이제 사건의 첫 장을 열어주세요.
-          </p>
+          <p>포스터의 단서를 확인했다면, 이제 사건의 첫 장을 열어주세요.</p>
 
           <button
             className="mainStartButton"

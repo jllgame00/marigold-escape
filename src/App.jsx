@@ -986,6 +986,14 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
     return ids;
   }, [connections]);
 
+  const resetStitchProgress = (message) => {
+    setConnections([]);
+    setSelectedPointId(null);
+    setWrongPairKey("");
+    setIsSolved(false);
+    setNotice(message);
+  };
+
   const handlePointClick = (pointId) => {
     if (isSolved) return;
     if (connectedPointIds.has(pointId)) {
@@ -1026,14 +1034,14 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
 
     if (!correctPairKeys.has(pairKey)) {
       setWrongPairKey(pairKey);
-      setNotice(
-        "실의 방향이 어긋났습니다. 왼쪽 구멍에서 오른쪽 구멍으로 이어주세요.",
-      );
+      setNotice("실의 방향이 어긋났습니다. 매듭이 모두 풀립니다.");
       setSelectedPointId(null);
 
       setTimeout(() => {
-        setWrongPairKey("");
-      }, 450);
+        resetStitchProgress(
+          "매듭이 모두 풀렸습니다. 처음부터 다시 이어주세요.",
+        );
+      }, 650);
 
       return;
     }

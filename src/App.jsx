@@ -1904,7 +1904,7 @@ function App() {
 
   if (screen === "poster") {
     return (
-      <main className="posterScrollPage">
+      <main className="posterOnlyPage">
         <section className="posterHeroSection">
           <div className="posterIntroCard">
             <img
@@ -1920,8 +1920,22 @@ function App() {
           </div>
         </section>
 
-        <section className="page landingAfterPoster">
-          {renderLandingContent()}
+        <section className="posterEnterSection">
+          <p className="eyebrow">Royal Mystery Escape</p>
+          <h1>조사 준비가 끝났습니다</h1>
+          <p>
+            포스터의 단서를 확인했다면, 이제 사건의 첫 장을 열어주세요.
+          </p>
+
+          <button
+            className="mainStartButton"
+            onClick={() => {
+              window.scrollTo({ top: 0, behavior: "auto" });
+              setScreen("landing");
+            }}
+          >
+            조사 안내 보기
+          </button>
         </section>
       </main>
     );

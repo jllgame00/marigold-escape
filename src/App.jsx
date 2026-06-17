@@ -812,6 +812,7 @@ function getCouponExpireDateText() {
 
 function sanitizeScreen(screen) {
   const allowedScreens = [
+    "poster",
     "landing",
     "code",
     "team",
@@ -1518,7 +1519,7 @@ function ARScanGate({
 }
 
 function App() {
-  const [screen, setScreen] = useState("landing");
+  const [screen, setScreen] = useState("poster");
   const [inputCode, setInputCode] = useState("");
   const [teamName, setTeamName] = useState("");
   const [flowIndex, setFlowIndex] = useState(0);
@@ -1575,7 +1576,7 @@ function App() {
       localStorage.removeItem(SAVE_KEY);
       localStorage.removeItem(OLD_SAVE_KEY);
 
-      setScreen("landing");
+      setScreen("poster");
       setInputCode("");
       setTeamName("");
       setFlowIndex(0);
@@ -1801,7 +1802,7 @@ function App() {
     localStorage.removeItem(SAVE_KEY);
     localStorage.removeItem(OLD_SAVE_KEY);
 
-    setScreen("landing");
+    setScreen("poster");
     setInputCode("");
     setTeamName("");
     setFlowIndex(0);
@@ -1840,9 +1841,8 @@ function App() {
     );
   }
 
-  if (screen === "landing") {
-    return (
-      <main className="page">
+  const renderLandingContent = () => (
+    <>
         <section className="hero heroVisual">
           <img
             className="heroImage"
@@ -1896,9 +1896,39 @@ function App() {
           <p>막히는 구간에서는 힌트를 사용해도 기록은 계속 이어집니다.</p>
         </section>
 
-        <button onClick={() => setScreen("code")}>조사 시작하기</button>
+        <button className="mainStartButton" onClick={() => setScreen("code")}>
+          조사 시작하기
+        </button>
+    </>
+  );
+
+  if (screen === "poster") {
+    return (
+      <main className="posterScrollPage">
+        <section className="posterHeroSection">
+          <div className="posterIntroCard">
+            <img
+              className="posterIntroImage"
+              src="/poster-intro.png"
+              alt="왕비 후보의 서찰 포스터"
+            />
+          </div>
+
+          <div className="scrollGuide">
+            <span>아래로 내려주세요</span>
+            <strong>⌄</strong>
+          </div>
+        </section>
+
+        <section className="page landingAfterPoster">
+          {renderLandingContent()}
+        </section>
       </main>
     );
+  }
+
+  if (screen === "landing") {
+    return <main className="page">{renderLandingContent()}</main>;
   }
 
   if (screen === "code") {

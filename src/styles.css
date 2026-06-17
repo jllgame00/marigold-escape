@@ -1243,3 +1243,130 @@ input::placeholder {
   font-weight: 900;
   text-align: right;
 }
+
+.posterScrollPage {
+  min-height: 100dvh;
+  background:
+    radial-gradient(circle at top, rgba(166, 114, 43, 0.18), transparent 42%),
+    #120a08;
+}
+
+.posterHeroSection {
+  position: relative;
+  min-height: 100svh;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  overflow: hidden;
+  background: #090505;
+}
+
+.posterIntroCard {
+  width: 100%;
+  height: 100svh;
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: #090505;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.posterIntroImage {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  background: #090505;
+}
+
+.scrollGuide {
+  position: absolute;
+  left: 50%;
+  bottom: max(24px, calc(env(safe-area-inset-bottom) + 16px));
+  z-index: 5;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(8, 5, 5, 0.62);
+  color: #e8c779;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+  animation: scrollGuidePulse 1.4s ease-in-out infinite;
+}
+
+.scrollGuide span {
+  font-size: 14px;
+  white-space: nowrap;
+}
+
+.scrollGuide strong {
+  font-size: 28px;
+  line-height: 1;
+}
+
+@keyframes scrollGuidePulse {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+.landingAfterPoster {
+  min-height: 100dvh;
+  padding-top: 0;
+  padding-bottom: 40px;
+}
+
+.mainStartButton {
+  width: min(100%, 420px);
+  min-height: 64px;
+  margin: 10px auto 0;
+  padding: 18px 28px;
+  border-radius: 999px;
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.35),
+    0 0 24px rgba(217, 189, 122, 0.18);
+}
+
+@media (max-width: 520px) {
+  .mainStartButton {
+    width: 100%;
+    min-height: 68px;
+    font-size: 19px;
+  }
+}
+
+.page > button.mainStartButton {
+  width: min(100%, 420px);
+  min-height: 64px;
+  margin: 10px auto 0;
+  padding: 18px 28px;
+  font-size: 20px;
+  box-shadow:
+    0 16px 34px rgba(0, 0, 0, 0.35),
+    0 0 24px rgba(217, 189, 122, 0.18);
+}
+
+@media (max-width: 520px) {
+  .page > button.mainStartButton {
+    width: 100%;
+    min-height: 68px;
+    font-size: 19px;
+  }
+}

@@ -1594,7 +1594,10 @@ function App() {
     return Math.max(1, passedMissionCount);
   }, [currentNode.id, currentNode.type, flowIndex, missionNodes]);
 
-  const workshopResult = getFastestWorkshop(missionTimes);
+  const workshopResult = useMemo(
+    () => getFastestWorkshop(missionTimes),
+    [missionTimes],
+  );
 
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -1704,6 +1707,9 @@ function App() {
       clearTimeSeconds,
       hintCount,
       missionCount: missionNodes.length,
+      clearTitle: getClearTitle(clearTimeSeconds, hintCount),
+      hintEnding: getHintEnding(hintCount),
+      workshopResult,
     })
       .then(({ status }) => {
         if (isActive) setRankingSaveStatus(status);
@@ -1723,6 +1729,7 @@ function App() {
     missionNodes.length,
     screen,
     teamName,
+    workshopResult,
   ]);
 
   const handleCodeSubmit = () => {

@@ -18,6 +18,19 @@ Firebase console. Production rules should validate the allowed fields and
 types, restrict reads to ranking records, and prevent update/delete operations
 from the client.
 
+If the rules validate fields with `hasOnly`, allow these ranking detail fields
+in addition to the basic record fields:
+
+- `clearTitle`
+- `hintEnding`
+- `workshopTitle`
+- `workshopName`
+- `workshopStatName`
+- `workshopDescription`
+- `recommendedCrafts`
+
+Validate `recommendedCrafts` as a list and limit it to at most 5 entries.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

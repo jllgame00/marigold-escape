@@ -7,6 +7,7 @@ import {
 function RankingBoard() {
   const [rankings, setRankings] = useState([]);
   const [status, setStatus] = useState("loading");
+  const [selectedRanking, setSelectedRanking] = useState(null);
 
   useEffect(() => {
     let isActive = true;
@@ -47,24 +48,114 @@ function RankingBoard() {
       )}
 
       {status === "success" && rankings.length > 0 && (
-        <div className="rankingList">
-          {rankings.map((record, index) => (
-            <div className="rankingItem" key={record.id}>
-              <span className="rankingRank">{index + 1}</span>
+        <>
+          <div className="rankingList">
+            {rankings.map((record, index) => {
+              const isSelected = selectedRanking?.id === record.id;
 
-              <div className="rankingInfo">
-                <strong className="rankingName">{record.teamName}</strong>
-                <span className="rankingHint">
-                  힌트 {Number(record.hintCount) || 0}회
-                </span>
+              return (
+                <button
+                  type="button"
+                  className={`rankingItem ${isSelected ? "selected" : ""}`}
+                  key={record.id}
+                  aria-expanded={isSelected}
+                  onClick={() =>
+                    setSelectedRanking(isSelected ? null : record)
+                  }
+                >
+                  <span className="rankingRank">{index + 1}</span>
+
+                  <div className="rankingInfo">
+                    <strong className="rankingName">{record.teamName}</strong>
+                    <span className="rankingHint">
+                      힌트 {Number(record.hintCount) || 0}회
+                    </span>
+                  </div>
+
+                  <span className="rankingTime">
+                    {formatRankingTime(record.clearTimeMs)}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedRanking && (
+            <div className="rankingDetailCard">
+              <p className="sectionLabel">Investigator Detail</p>
+              <h3 className="rankingDetailTitle">
+                {selectedRanking.teamName || "이름 없는 조사관"}
+              </h3>
+
+              <div className="rankingDetailGrid">
+                <p>
+                  <strong>칭호</strong>
+                  <span>
+                    {selectedRanking.clearTitle || "진실을 밝힌 조사관"}
+                  </span>
+                </p>
+                <p>
+                  <strong>기록</strong>
+                  <span>
+                    {formatRankingTime(selectedRanking.clearTimeMs)}
+                  </span>
+                </p>
+                <p>
+                  <strong>힌트</strong>
+                  <span>{Number(selectedRanking.hintCount) || 0}회</span>
+                </p>
+                <p>
+                  <strong>추천 유형</strong>
+                  <span>
+                    {selectedRanking.workshopTitle || "서찰 조사관형"}
+                  </span>
+                </p>
+                <p>
+                  <strong>추천 공방</strong>
+                  <span>
+                    {selectedRanking.workshopName || "공방거리 종합 체험"}
+                  </span>
+                </p>
+                <p>
+                  <strong>강점</strong>
+                  <span>
+                    {selectedRanking.workshopStatName || "종합 추리 감각"}
+                  </span>
+                </p>
               </div>
 
-              <span className="rankingTime">
-                {formatRankingTime(record.clearTimeMs)}
-              </span>
+              <div className="rankingDetailText">
+                <strong>힌트 평가</strong>
+                <p>
+                  {selectedRanking.hintEnding ||
+                    "끝까지 사건을 추적한 기록입니다."}
+                </p>
+              </div>
+
+              <div className="rankingDetailText">
+                <strong>공방 추천 설명</strong>
+                <p>
+                  {selectedRanking.workshopDescription ||
+                    "여러 단서를 균형 있게 따라간 조사관에게 어울리는 체험입니다."}
+                </p>
+              </div>
+
+              <div className="rankingDetailText">
+                <strong>추천 체험</strong>
+                {Array.isArray(selectedRanking.recommendedCrafts) &&
+                selectedRanking.recommendedCrafts.length > 0 ? (
+                  <ul className="rankingCraftList">
+                    {selectedRanking.recommendedCrafts.map((craft, index) => (
+                      <li key={`${craft}-${index}`}>{craft}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>추천 체험 정보가 없습니다.</p>
+                )}
+              </div>
             </div>
-          ))}
-        </div>
+          )}
+        </>
       )}
     </section>
   );

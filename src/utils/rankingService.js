@@ -43,8 +43,11 @@ function normalizeCount(value) {
 export async function submitRanking({
   teamName,
   clearTimeSeconds,
-  hintCount,
-  missionCount,
+  hintCount = 0,
+  missionCount = 7,
+  clearTitle = "",
+  hintEnding = "",
+  workshopResult = null,
 }) {
   const numericClearTimeSeconds = Number(clearTimeSeconds);
 
@@ -77,6 +80,18 @@ export async function submitRanking({
       missionCount: normalizeCount(missionCount),
       dayKey,
       createdAt: serverTimestamp(),
+      clearTitle: String(clearTitle || ""),
+      hintEnding: String(hintEnding || ""),
+      workshopTitle: String(workshopResult?.title || ""),
+      workshopName: String(workshopResult?.workshop || ""),
+      workshopStatName: String(workshopResult?.statName || ""),
+      workshopDescription: String(workshopResult?.description || ""),
+      recommendedCrafts: Array.isArray(workshopResult?.recommendedCrafts)
+        ? workshopResult.recommendedCrafts
+            .slice(0, 5)
+            .map((craft) => String(craft || ""))
+            .filter(Boolean)
+        : [],
     },
   )
     .then((documentReference) => {

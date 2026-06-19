@@ -1,5 +1,23 @@
 # React + Vite
 
+## Firebase ranking configuration
+
+Install dependencies and copy `.env.example` to `.env`, then fill in the
+Firebase web app configuration values.
+
+```bash
+npm install
+```
+
+The ranking data is stored by Korea Standard Time date at
+`rankings/{YYYY-MM-DD}/records/{recordId}`. The client reads only the current
+Korea date and orders records by `clearTimeMs` ascending.
+
+Do not commit `.env`. Configure Firestore Security Rules separately in the
+Firebase console. Production rules should validate the allowed fields and
+types, restrict reads to ranking records, and prevent update/delete operations
+from the client.
+
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
 Currently, two official plugins are available:

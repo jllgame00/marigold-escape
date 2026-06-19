@@ -1,12 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import RankingBoard from "./components/RankingBoard";
 import { gameInfo } from "./data/gameData";
-import { dummyLeaderboard } from "./data/leaderboardData";
+import { submitRanking } from "./utils/rankingService";
 import { formatTime, getClearTitle, getHintEnding } from "./utils/timeUtils";
 import heroImg from "./assets/hero.png";
 import "./styles.css";
 
 const SAVE_KEY = "royalLetterEscapeSave";
 const OLD_SAVE_KEY = "marigoldEscapeSave";
+
+const rankingSaveMessages = {
+  idle: "",
+  saving: "랭킹 저장 중...",
+  submitted: "오늘의 랭킹에 등록되었습니다.",
+  duplicate: "이미 등록된 기록입니다.",
+  error: "랭킹 저장에 실패했습니다. 클리어 인증은 유지됩니다.",
+};
 
 const gameConfig = {
   title: gameInfo?.title || "왕비 후보의 서찰",
@@ -1550,7 +1559,7 @@ function App() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [missionStartTime, setMissionStartTime] = useState(null);
   const [missionTimes, setMissionTimes] = useState({});
-  const [selectedRecord, setSelectedRecord] = useState(null);
+  const [rankingSaveStatus, setRankingSaveStatus] = useState("idle");
   const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(false);
   const [arScanDone, setArScanDone] = useState(false);
 
@@ -1605,7 +1614,7 @@ function App() {
       setClearTimeSeconds(null);
       setMissionStartTime(null);
       setMissionTimes({});
-      setSelectedRecord(null);
+      setRankingSaveStatus("idle");
       setIsLoaded(true);
       return;
     }
@@ -1681,6 +1690,40 @@ function App() {
     startTime && !clearTimeSeconds
       ? Math.floor((now - startTime) / 1000)
       : clearTimeSeconds || 0;
+
+  useEffect(() => {
+    if (!isLoaded || screen !== "clear" || clearTimeSeconds === null) return;
+
+    let isActive = true;
+    queueMicrotask(() => {
+      if (isActive) setRankingSaveStatus("saving");
+    });
+
+    submitRanking({
+      teamName,
+      clearTimeSeconds,
+      hintCount,
+      missionCount: missionNodes.length,
+    })
+      .then(({ status }) => {
+        if (isActive) setRankingSaveStatus(status);
+      })
+      .catch((error) => {
+        console.error("Failed to submit ranking.", error);
+        if (isActive) setRankingSaveStatus("error");
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [
+    clearTimeSeconds,
+    hintCount,
+    isLoaded,
+    missionNodes.length,
+    screen,
+    teamName,
+  ]);
 
   const handleCodeSubmit = () => {
     const normalizedCode = inputCode.trim().toUpperCase();
@@ -1831,23 +1874,8 @@ function App() {
     setClearTimeSeconds(null);
     setMissionStartTime(null);
     setMissionTimes({});
-    setSelectedRecord(null);
+    setRankingSaveStatus("idle");
   };
-
-  const myRecord =
-    clearTimeSeconds !== null
-      ? {
-          teamName,
-          clearTimeSeconds,
-          hintCount,
-          traitTitle: workshopResult.title,
-        }
-      : null;
-
-  const leaderboard = [
-    ...dummyLeaderboard,
-    ...(myRecord ? [myRecord] : []),
-  ].sort((a, b) => a.clearTimeSeconds - b.clearTimeSeconds);
 
   if (!isLoaded) {
     return (
@@ -2535,6 +2563,15 @@ function App() {
           <p>힌트 사용: {hintCount}회</p>
           <p>획득 칭호: {clearTitle}</p>
           <p>엔딩 평가: {hintEnding}</p>
+          {rankingSaveMessages[rankingSaveStatus] && (
+            <p
+              className={`rankingSaveStatus ${
+                rankingSaveStatus === "error" ? "rankingSaveError" : ""
+              }`}
+            >
+              {rankingSaveMessages[rankingSaveStatus]}
+            </p>
+          )}
         </section>
 
         <section className="card resultCard">
@@ -2636,52 +2673,10 @@ function App() {
         <p className="eyebrow">Today Ranking</p>
         <h1>오늘의 조사관 랭킹</h1>
         <p className="smallText">
-          매일 00:00 기준으로 새로운 랭킹이 시작됩니다.
+          한국 시간 매일 00:00 기준으로 새로운 랭킹이 시작됩니다.
         </p>
 
-        <section className="card rankingCard">
-          <p className="sectionLabel">Ranking Board</p>
-          <h2>오늘의 기록</h2>
-
-          <div className="rankingList">
-            {leaderboard.map((record, index) => (
-              <button
-                key={`${record.teamName}-${index}`}
-                className="rankingItem"
-                onClick={() => setSelectedRecord(record)}
-              >
-                <span className="rankingPlace">{index + 1}</span>
-
-                <div className="rankingInfo">
-                  <strong>{record.teamName}</strong>
-                  <span>{record.traitTitle || "조사관형"}</span>
-                </div>
-
-                <span className="rankingTime">
-                  {formatTime(record.clearTimeSeconds)}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {selectedRecord && (
-          <section className="card resultCard">
-            <p className="eyebrow">INVESTIGATOR CARD</p>
-            <h2>{selectedRecord.teamName}</h2>
-
-            <p>조사 시간: {formatTime(selectedRecord.clearTimeSeconds)}</p>
-            <p>힌트 사용: {selectedRecord.hintCount}회</p>
-            <p>조사 성향: {selectedRecord.traitTitle || "조사관형"}</p>
-
-            <button
-              className="secondaryButton"
-              onClick={() => setSelectedRecord(null)}
-            >
-              닫기
-            </button>
-          </section>
-        )}
+        <RankingBoard />
 
         <button onClick={() => setScreen("clear")}>클리어 화면으로</button>
       </main>

@@ -1112,6 +1112,14 @@ input::placeholder {
   color: #7a2730;
 }
 
+.rankingRefreshMessage {
+  margin: 12px 0 0;
+  color: #735f4f;
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
 .rankingDetailCard {
   margin-top: 18px;
   padding: 18px;

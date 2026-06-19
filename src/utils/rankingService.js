@@ -10,6 +10,7 @@ import {
 import { db } from "../lib/firebase";
 
 const KOREA_TIME_ZONE = "Asia/Seoul";
+const RANKING_CACHE_PREFIX = "rankingCache:";
 const submissionPromises = new Map();
 
 export function getKoreaDayKey(date = new Date()) {
@@ -27,6 +28,34 @@ export function getKoreaDayKey(date = new Date()) {
   );
 
   return `${dateParts.year}-${dateParts.month}-${dateParts.day}`;
+}
+
+export function getCachedRankings(dayKey) {
+  try {
+    const raw = localStorage.getItem(`${RANKING_CACHE_PREFIX}${dayKey}`);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.rankings) ? parsed.rankings : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setCachedRankings(dayKey, rankings) {
+  if (!Array.isArray(rankings)) return;
+
+  try {
+    localStorage.setItem(
+      `${RANKING_CACHE_PREFIX}${dayKey}`,
+      JSON.stringify({
+        savedAt: Date.now(),
+        rankings,
+      }),
+    );
+  } catch {
+    // Ranking cache failures must not block Firestore ranking reads.
+  }
 }
 
 function normalizeTeamName(teamName) {

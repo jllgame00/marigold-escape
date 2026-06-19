@@ -1,12 +1,28 @@
 import { useEffect, useState } from "react";
 import {
   formatRankingTime,
+  getCachedRankings,
+  getKoreaDayKey,
   getTodayRankings,
+  setCachedRankings,
 } from "../utils/rankingService";
 
 function RankingBoard() {
-  const [rankings, setRankings] = useState([]);
-  const [status, setStatus] = useState("loading");
+  const [initialRankingState] = useState(() => {
+    const dayKey = getKoreaDayKey();
+    const cachedRankings = getCachedRankings(dayKey);
+
+    return {
+      dayKey,
+      cachedRankings,
+      hasCache: cachedRankings !== null,
+    };
+  });
+  const { dayKey, cachedRankings, hasCache } = initialRankingState;
+  const [rankings, setRankings] = useState(() => cachedRankings || []);
+  const [loading, setLoading] = useState(() => !hasCache);
+  const [refreshing, setRefreshing] = useState(() => hasCache);
+  const [error, setError] = useState("");
   const [selectedRanking, setSelectedRanking] = useState(null);
 
   useEffect(() => {
@@ -15,39 +31,52 @@ function RankingBoard() {
     getTodayRankings(10)
       .then((records) => {
         if (!isActive) return;
+
         setRankings(records);
-        setStatus("success");
+        setCachedRankings(dayKey, records);
+        setSelectedRanking((selected) => {
+          if (!selected) return null;
+          return records.find((record) => record.id === selected.id) || null;
+        });
+        setError("");
       })
-      .catch((error) => {
-        console.error("Failed to load today's rankings.", error);
-        if (isActive) setStatus("error");
+      .catch((fetchError) => {
+        console.error("Failed to load today's rankings.", fetchError);
+        if (isActive) {
+          setError("랭킹을 불러오지 못했습니다.");
+        }
+      })
+      .finally(() => {
+        if (!isActive) return;
+        setLoading(false);
+        setRefreshing(false);
       });
 
     return () => {
       isActive = false;
     };
-  }, []);
+  }, [dayKey]);
 
   return (
     <section className="card rankingCard">
       <p className="sectionLabel">Ranking Board</p>
       <h2>오늘의 기록</h2>
 
-      {status === "loading" && (
+      {loading && (
         <p className="rankingMessage">오늘의 랭킹을 불러오는 중...</p>
       )}
 
-      {status === "error" && (
+      {!loading && error && !hasCache && rankings.length === 0 && (
         <p className="rankingMessage rankingError">
-          랭킹을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.
+          랭킹을 불러오지 못했습니다.
         </p>
       )}
 
-      {status === "success" && rankings.length === 0 && (
+      {!loading && (!error || hasCache) && rankings.length === 0 && (
         <p className="rankingMessage">아직 등록된 기록이 없습니다.</p>
       )}
 
-      {status === "success" && rankings.length > 0 && (
+      {!loading && rankings.length > 0 && (
         <>
           <div className="rankingList">
             {rankings.map((record, index) => {
@@ -156,6 +185,12 @@ function RankingBoard() {
             </div>
           )}
         </>
+      )}
+
+      {refreshing && (
+        <p className="rankingRefreshMessage">
+          최신 기록을 확인하고 있습니다...
+        </p>
       )}
     </section>
   );

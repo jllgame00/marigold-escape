@@ -9,6 +9,10 @@ import "./styles.css";
 const SAVE_KEY = "royalLetterEscapeSave";
 const OLD_SAVE_KEY = "marigoldEscapeSave";
 
+// TEMP: 퍼즐/페이지 구성 확정 전 현장 테스트용 skip 기능.
+// 최종 배포 전 false로 변경하거나 제거할 것.
+const TEMP_ALLOW_PUZZLE_SKIP = true;
+
 const rankingSaveMessages = {
   idle: "",
   saving: "랭킹 저장 중...",
@@ -1807,28 +1811,8 @@ function App() {
     return openedHints.includes(hintKey);
   };
 
-  const submitMissionAnswer = () => {
+  const completeCurrentMission = () => {
     if (currentNode.type !== "mission") return;
-
-    const isTemporaryMission = currentNode.answer?.startsWith("TEMP");
-
-    if (!isTemporaryMission) {
-      const userAnswer = normalizeAnswer(answer);
-      const acceptedAnswers = currentNode.acceptedAnswers || [
-        currentNode.answer,
-      ];
-
-      const isCorrect = acceptedAnswers.some(
-        (correct) => userAnswer === normalizeAnswer(correct),
-      );
-
-      if (!isCorrect) {
-        setMessage(
-          "아직 진실에 닿지 못했습니다. 현장의 단서와 순서를 다시 확인해보세요.",
-        );
-        return;
-      }
-    }
 
     const solvedAt = Date.now();
     const spentSeconds = missionStartTime
@@ -1862,6 +1846,32 @@ function App() {
     setAnswer("");
     setMessage("");
     goNextFlow();
+  };
+
+  const submitMissionAnswer = () => {
+    if (currentNode.type !== "mission") return;
+
+    const isTemporaryMission = currentNode.answer?.startsWith("TEMP");
+
+    if (!isTemporaryMission) {
+      const userAnswer = normalizeAnswer(answer);
+      const acceptedAnswers = currentNode.acceptedAnswers || [
+        currentNode.answer,
+      ];
+
+      const isCorrect = acceptedAnswers.some(
+        (correct) => userAnswer === normalizeAnswer(correct),
+      );
+
+      if (!isCorrect) {
+        setMessage(
+          "아직 진실에 닿지 못했습니다. 현장의 단서와 순서를 다시 확인해보세요.",
+        );
+        return;
+      }
+    }
+
+    completeCurrentMission();
   };
 
   const resetGame = () => {
@@ -2416,6 +2426,16 @@ function App() {
                     </button>
                   </div>
                 </>
+              )}
+
+              {TEMP_ALLOW_PUZZLE_SKIP && (
+                <button
+                  type="button"
+                  className="secondaryButton"
+                  onClick={completeCurrentMission}
+                >
+                  [임시] 다음 단계로
+                </button>
               )}
 
               {message && <p className="message">{message}</p>}

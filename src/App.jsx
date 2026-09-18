@@ -2122,7 +2122,7 @@ function App() {
               )}
 
               {currentNode.mediaNote && (
-                <p className="smallText">{currentNode.mediaNote}</p>
+                <p className="smallText storyText">{currentNode.mediaNote}</p>
               )}
 
               {currentNode.video && (
@@ -2133,7 +2133,9 @@ function App() {
               )}
 
               {currentNode.paragraphs.map((text, index) => (
-                <p key={`${currentNode.id}-paragraph-${index}`}>{text}</p>
+                <p className="storyText" key={`${currentNode.id}-paragraph-${index}`}>
+                  {text}
+                </p>
               ))}
             </section>
 

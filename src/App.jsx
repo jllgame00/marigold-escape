@@ -67,6 +67,7 @@ const storyFlow = [
       "어딘가에 숨겨진 진실이 있다.",
       "그리고 그 진실은 지금, 당신의 손에 맡겨졌다.",
     ],
+    calloutParagraphIndexes: [3],
     acquiredItems: [
       "왕비 후보의 서찰",
       "낡은 증좌 그림",
@@ -1896,7 +1897,7 @@ function App() {
 
   const renderLandingContent = () => (
     <>
-      <section className="hero heroVisual">
+      <section className="hero heroVisual landingHero">
         <img
           className="heroImage"
           src={heroImg}
@@ -1921,7 +1922,7 @@ function App() {
         </div>
       </section>
 
-      <section className="card">
+      <section className="documentSection landingSection">
         <p className="sectionLabel">Investigation Guide</p>
         <h2>조사 안내</h2>
         <ul>
@@ -1931,7 +1932,7 @@ function App() {
         </ul>
       </section>
 
-      <section className="card">
+      <section className="documentSection landingSection">
         <p className="sectionLabel">Kit Contents</p>
         <h2>봉투 속 단서</h2>
         <ul>
@@ -1941,7 +1942,7 @@ function App() {
         </ul>
       </section>
 
-      <section className="card warning">
+      <section className="documentSection landingSection documentNotice">
         <p className="sectionLabel">Notice</p>
         <h2>조사관 주의사항</h2>
         <p>길을 건널 때는 스마트폰을 보지 말고 주변을 확인해주세요.</p>
@@ -1993,7 +1994,7 @@ function App() {
   }
 
   if (screen === "landing") {
-    return <main className="page">{renderLandingContent()}</main>;
+    return <main className="page landingPage">{renderLandingContent()}</main>;
   }
 
   if (screen === "code") {
@@ -2070,10 +2071,16 @@ function App() {
       <main className="page">
         {startTime && (
           <header className="missionHeader">
-            <span>
-              진행 {flowIndex + 1} / {storyFlow.length}
+            <div className="missionProgressMeta"><span>
+              진행 <strong>{flowIndex + 1}</strong> / {storyFlow.length}
             </span>
-            <span>{formatTime(elapsedSeconds)}</span>
+            <span>{formatTime(elapsedSeconds)}</span></div>
+            <div className="progressBar missionProgressBar" aria-label="Progress">
+              <div
+                className="progressFill"
+                style={{ width: `${((flowIndex + 1) / storyFlow.length) * 100}%` }}
+              />
+            </div>
           </header>
         )}
 
@@ -2094,13 +2101,13 @@ function App() {
               </video>
             </section>
 
-            <section className="card">
+            <section className="documentSection teaserIntro">
               <p className="sectionLabel">Opening</p>
               <h2>{currentNode.subtitle}</h2>
               <p>{currentNode.description}</p>
             </section>
 
-            <button onClick={goNextFlow}>{currentNode.buttonText}</button>
+            <button className="primaryAction" onClick={goNextFlow}>{currentNode.buttonText}</button>
 
             <button
               className="secondaryButton"
@@ -2116,7 +2123,7 @@ function App() {
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
 
-            <section className="card storyCard">
+            <section className="storyDocument">
               {currentNode.location && (
                 <p className="locationText">장소: {currentNode.location}</p>
               )}
@@ -2132,14 +2139,21 @@ function App() {
                 />
               )}
 
-              {currentNode.paragraphs.map((text, index) => (
-                <p className="storyText" key={`${currentNode.id}-paragraph-${index}`}>
-                  {text}
-                </p>
-              ))}
+              {currentNode.paragraphs.map((text, index) => {
+                const isCallout = currentNode.calloutParagraphIndexes?.includes(index);
+
+                return (
+                  <p
+                    className={`storyText${isCallout ? " storyCallout" : ""}`}
+                    key={`${currentNode.id}-paragraph-${index}`}
+                  >
+                    {text}
+                  </p>
+                );
+              })}
             </section>
 
-            {currentNode.acquiredItems && (
+            {currentNode.acquiredItems && currentNode.id !== "prologue" && (
               <section className="card">
                 <p className="sectionLabel">Acquired Items</p>
                 <h2>획득한 물품</h2>
@@ -2151,12 +2165,12 @@ function App() {
               </section>
             )}
 
-            <button onClick={goNextFlow}>
+            <button className="primaryAction" onClick={goNextFlow}>
               {currentNode.buttonText || "다음 단서로 이동"}
             </button>
 
             <button
-              className="secondaryButton"
+              className="clueNotebookTrigger"
               onClick={() => setScreen("progress")}
             >
               단서첩 보기
@@ -2169,7 +2183,7 @@ function App() {
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
 
-            <section className="card">
+            <section className={currentNode.letterParagraphs ? "movementLetter" : "missionLocationSection"}>
               <p className="sectionLabel">Location Guide</p>
               <h2>이동 안내</h2>
 
@@ -2186,7 +2200,7 @@ function App() {
               )}
             </section>
 
-            <section className="card">
+            <section className="documentSection caseRecord">
               <p className="sectionLabel">Case Record</p>
               <h2>{currentNode.recordTitle || "사건 기록"}</h2>
 
@@ -2199,7 +2213,7 @@ function App() {
               )}
             </section>
 
-            <section className="card answerCard">
+            <section className="missionWorkspace answerCard">
               <p className="sectionLabel">Investigation Question</p>
               <h2>조사 문제</h2>
 
@@ -2425,7 +2439,7 @@ function App() {
               {TEMP_ALLOW_PUZZLE_SKIP && (
                 <button
                   type="button"
-                  className="secondaryButton"
+                  className="tempSkipAction"
                   onClick={completeCurrentMission}
                 >
                   [임시] 다음 단계로
@@ -2436,13 +2450,12 @@ function App() {
             </section>
 
             <button
-              className="secondaryButton"
+              className="clueNotebookTrigger"
               onClick={() => setScreen("progress")}
             >
               단서첩 보기
             </button>
 
-            {message && <p className="message">{message}</p>}
           </>
         )}
 
@@ -2451,18 +2464,18 @@ function App() {
             <p className="eyebrow">ENDING</p>
             <h1>{currentNode.title}</h1>
 
-            <section className="card endingCard">
+            <section className="endingCard">
               {currentNode.paragraphs.map((text, index) => (
                 <p key={`${currentNode.id}-paragraph-${index}`}>{text}</p>
               ))}
             </section>
 
-            <button onClick={goNextFlow}>
+            <button className="endingAction" onClick={goNextFlow}>
               {currentNode.buttonText || "클리어 인증 보기"}
             </button>
 
             <button
-              className="secondaryButton"
+              className="clueNotebookTrigger"
               onClick={() => setScreen("progress")}
             >
               단서첩 보기
@@ -2475,11 +2488,11 @@ function App() {
 
   if (screen === "progress") {
     return (
-      <main className="page">
+      <main className="page notebookPage">
         <p className="eyebrow">Clue Note</p>
         <h1>단서첩</h1>
 
-        <section className="card">
+        <section className="documentSection progressOverview">
           <p className="sectionLabel">Progress</p>
           <p>
             이야기 진행률 {flowIndex + 1} / {storyFlow.length}
@@ -2494,7 +2507,7 @@ function App() {
           </div>
         </section>
 
-        <section className="card">
+        <section className="documentSection notebookSection">
           <p className="sectionLabel">Craft Street Map</p>
           <h2>공방거리 조사 지도</h2>
           <div className="clueMap">
@@ -2526,7 +2539,7 @@ function App() {
           </div>
         </section>
 
-        <section className="card">
+        <section className="documentSection notebookSection">
           <p className="sectionLabel">Collected Clues</p>
           <h2>획득한 단서</h2>
           <div className="pieceGrid">
@@ -2543,7 +2556,7 @@ function App() {
           </div>
         </section>
 
-        <button onClick={() => setScreen("flow")}>조사로 돌아가기</button>
+        <button className="primaryAction" onClick={() => setScreen("flow")}>조사로 돌아가기</button>
       </main>
     );
   }
@@ -2554,11 +2567,16 @@ function App() {
     const hintEnding = getHintEnding(hintCount);
 
     return (
-      <main className="page centerPage">
-        <p className="eyebrow">Truth Revealed</p>
-        <h1>진실 확인</h1>
+      <main className="page centerPage clearPage">
+        <section className="clearRevealHero">
+          <img src="/story7-poster.png" alt="" />
+          <div className="clearRevealOverlay">
+            <p className="eyebrow">Truth Revealed</p>
+            <h1>진실 확인</h1>
+          </div>
+        </section>
 
-        <section className="card">
+        <section className="truthDocument">
           <p className="sectionLabel">Final Letter</p>
           <h2>왕비 후보의 서찰</h2>
           <p>모든 단서는 왕의 마음이 변했다는 방향으로 연이를 흔들고 있었다.</p>
@@ -2609,7 +2627,7 @@ function App() {
           </ul>
         </section>
 
-        <section className="card">
+        <section className="rewardBrief">
           <p className="sectionLabel">Reward</p>
           <h2>보상 안내</h2>
           <p>
@@ -2617,13 +2635,7 @@ function App() {
           </p>
         </section>
 
-        <section className="card">
-          <p className="sectionLabel">Reward</p>
-          <h2>보상 안내</h2>
-          <p>다음 화면을 제시하면 메리골드 클리어 혜택을 받을 수 있습니다.</p>
-        </section>
-
-        <button onClick={() => setScreen("coupon")}>
+        <button className="rewardAction" onClick={() => setScreen("coupon")}>
           메리골드 쿠폰 확인하기
         </button>
 
@@ -2638,7 +2650,7 @@ function App() {
     const couponExpireDateText = getCouponExpireDateText();
 
     return (
-      <main className="page centerPage">
+      <main className="page centerPage rewardPage">
         <p className="eyebrow">Marigold Coupon</p>
         <h1>메리골드 클리어 혜택</h1>
 
@@ -2677,7 +2689,7 @@ function App() {
           </p>
         </section>
 
-        <button onClick={() => setScreen("leaderboard")}>
+        <button className="primaryAction" onClick={() => setScreen("leaderboard")}>
           오늘의 조사 랭킹 보기
         </button>
 

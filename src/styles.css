@@ -220,7 +220,7 @@ button:hover:not(:disabled) {
   filter: brightness(1.06);
 }
 
-.page > button,
+.page > button:not([class]),
 .secondaryButton {
   width: 100%;
   min-height: 58px;
@@ -236,13 +236,13 @@ button:hover:not(:disabled) {
     inset 0 1px 0 rgba(255, 255, 255, 0.16);
 }
 
-.page > button + button,
-.page > button + .secondaryButton,
-.page > .secondaryButton + button {
+.page > button:not(.clueNotebookTrigger) + button:not(.clueNotebookTrigger),
+.page > button:not(.clueNotebookTrigger) + .secondaryButton,
+.page > .secondaryButton + button:not(.clueNotebookTrigger) {
   margin-top: 12px;
 }
 
-.page > button:last-child {
+.page > button:not(.clueNotebookTrigger):last-child {
   margin-bottom: 28px;
 }
 
@@ -331,11 +331,6 @@ input::placeholder {
 
 .card .smallText {
   color: var(--ink-soft);
-}
-
-.warning {
-  border-color: rgba(140, 47, 57, 0.46);
-  background: linear-gradient(180deg, #f7ead2 0%, #e7ccb2 100%);
 }
 
 /* landing / hero / teaser */
@@ -435,25 +430,6 @@ input::placeholder {
 }
 
 /* story / mission common */
-.missionHeader {
-  position: sticky;
-  top: 10px;
-  z-index: 5;
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 12px;
-  border: 1px solid rgba(217, 189, 122, 0.36);
-  border-radius: 999px;
-  background: rgba(18, 13, 18, 0.92);
-  color: #f4d78f;
-  font-size: 13px;
-  font-weight: 900;
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.28);
-  backdrop-filter: blur(10px);
-}
-
-.storyCard p:last-child,
 .endingCard p:last-child,
 .ruleBox p:last-child,
 .missionContentFlow p:last-child {
@@ -844,40 +820,6 @@ input::placeholder {
 .card .successMessage {
   color: #276749;
   background: rgba(39, 103, 73, 0.12);
-}
-
-.hintCard .hintBlock {
-  margin-top: 12px;
-  padding: 12px;
-  border: 1px solid rgba(185, 151, 91, 0.3);
-  border-radius: 16px;
-  background: rgba(255, 247, 232, 0.42);
-}
-
-.hintCard .hintBlock + .hintBlock {
-  margin-top: 10px;
-}
-
-.hintCard .secondaryButton {
-  min-height: 46px;
-  margin: 0;
-  padding: 12px 14px;
-  border-color: rgba(138, 103, 54, 0.45);
-  border-radius: 14px;
-  background: linear-gradient(180deg, var(--paper-deep) 0%, #d2b47f 100%);
-  color: var(--ink);
-  font-size: 14px;
-  box-shadow: none;
-}
-
-.hintCard .hint {
-  margin-top: 10px;
-  padding: 13px 14px;
-  border: 1px dashed rgba(138, 103, 54, 0.48);
-  border-radius: 14px;
-  background: rgba(234, 217, 189, 0.7);
-  color: var(--ink);
-  line-height: 1.65;
 }
 
 /* progress / clue map */
@@ -1638,8 +1580,7 @@ body {
 .missionLocationSection,
 .caseRecord,
 .truthDocument,
-.rewardBrief,
-.endingDocument {
+.rewardBrief {
   padding: 0 0 28px;
   border: 0;
   border-top: 1px solid rgba(217, 189, 122, 0.26);
@@ -1664,9 +1605,7 @@ body {
 .truthDocument h3,
 .truthDocument p,
 .rewardBrief h2,
-.rewardBrief p,
-.endingDocument h2,
-.endingDocument p {
+.rewardBrief p {
   color: var(--paper);
 }
 
@@ -2117,8 +2056,7 @@ body {
   .storyDocument,
   .caseRecord,
   .truthDocument,
-  .rewardBrief,
-  .endingDocument {
+  .rewardBrief {
     padding-right: 48px;
   }
 }
@@ -2174,4 +2112,176 @@ body {
 .missionProgressMeta strong {
   color: var(--gold-bright);
   font-size: 1.08em;
+}
+/* phase two interface polish */
+.primaryAction,
+.endingAction,
+.rewardAction,
+.choiceSubmitButton,
+.missionWorkspace .answerBox button,
+.missionWorkspace .arScanBox > button {
+  width: 100%;
+  min-height: 60px;
+  border-radius: 16px;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.primaryAction,
+.endingAction,
+.rewardAction {
+  margin: 12px 0 0;
+  padding: 18px 20px;
+}
+
+.choiceSubmitButton {
+  margin-top: 16px;
+  padding: 18px;
+}
+
+.missionWorkspace .answerBox button,
+.missionWorkspace .arScanBox > button {
+  margin: 0;
+  padding: 18px;
+}
+
+.secondaryButton {
+  min-height: 54px;
+  padding: 15px 18px;
+  border-radius: 16px;
+  font-size: 15px;
+}
+
+.tempSkipAction {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  border: 1px dashed rgba(217, 189, 122, 0.34);
+  border-radius: 12px;
+  background: rgba(255, 247, 232, 0.05);
+  color: rgba(255, 247, 232, 0.64);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+  box-shadow: none;
+}
+
+.tempSkipAction:hover:not(:disabled) {
+  border-color: rgba(217, 189, 122, 0.58);
+  background: rgba(255, 247, 232, 0.09);
+  color: rgba(255, 247, 232, 0.82);
+  box-shadow: none;
+}
+
+.clueNotebookTrigger {
+  width: max-content;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  margin: 24px auto 4px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--gold-bright);
+  font-size: 14px;
+  font-weight: 800;
+  line-height: 1.35;
+  box-shadow: none;
+}
+
+.clueNotebookTrigger:hover:not(:disabled) {
+  box-shadow: none;
+}
+
+.storyDocument .storyCallout {
+  color: #fff6df;
+}
+
+.movementLetter p {
+  color: var(--ink);
+  font-family: "MaruBuri", serif;
+  font-size: 16px;
+  line-height: 1.85;
+}
+
+.clearRevealHero {
+  position: relative;
+  min-height: clamp(220px, 42vw, 280px);
+  overflow: hidden;
+  border: 1px solid rgba(217, 189, 122, 0.55);
+  border-radius: 4px;
+  background: var(--night-deep);
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.3);
+}
+
+.clearRevealHero img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 36%;
+}
+
+.clearRevealOverlay {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding: 28px 24px;
+  background: linear-gradient(180deg, rgba(9, 6, 8, 0.08) 0%, rgba(9, 6, 8, 0.86) 76%, #120d12 100%);
+}
+
+.clearRevealOverlay .eyebrow {
+  color: var(--gold-bright);
+}
+
+.clearRevealOverlay h1 {
+  margin-bottom: 0;
+}
+
+.missionProgressMeta {
+  width: 100%;
+  min-width: 0;
+  gap: clamp(8px, 3.5vw, 16px);
+  font-size: clamp(12px, 3.2vw, 13px);
+}
+
+.missionProgressMeta > span:first-child {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  color: rgba(255, 247, 232, 0.82);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.missionProgressMeta > span:last-child {
+  flex: 0 0 auto;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--gold-bright);
+  outline-offset: 3px;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
+  filter: brightness(0.98);
+}
+
+@media (max-width: 420px) {
+  .clearRevealOverlay {
+    padding: 24px 18px;
+  }
 }

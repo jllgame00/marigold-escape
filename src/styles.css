@@ -1556,3 +1556,622 @@ input::placeholder {
     font-size: 19px;
   }
 }
+
+/* document-first experience */
+html,
+body {
+  overflow-x: hidden;
+}
+
+.page {
+  width: min(100%, 680px);
+  max-width: 680px;
+  gap: 28px;
+  padding: 36px clamp(18px, 4vw, 40px) 52px;
+}
+
+.page > h1 + p {
+  max-width: 44rem;
+}
+
+.landingPage {
+  width: min(100%, 720px);
+  max-width: 720px;
+  gap: 0;
+  padding: 0 0 56px;
+}
+
+.landingHero {
+  min-height: min(560px, 82svh);
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--night);
+}
+
+.landingHero .heroImage {
+  height: min(560px, 82svh);
+}
+
+.landingHero .heroOverlay {
+  background: linear-gradient(
+    180deg,
+    rgba(18, 13, 18, 0.04) 0%,
+    rgba(18, 13, 18, 0.28) 34%,
+    rgba(18, 13, 18, 0.92) 78%,
+    var(--night) 100%
+  );
+}
+
+.landingHero::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  height: 32%;
+  background: linear-gradient(180deg, transparent, var(--night));
+  pointer-events: none;
+}
+
+.landingHero .heroContent {
+  padding: 28px clamp(18px, 5vw, 40px) 30px;
+}
+
+.landingHero .heroContent > * {
+  position: relative;
+  z-index: 2;
+}
+
+.landingPage .landingSection {
+  margin: 0 clamp(18px, 4vw, 40px);
+}
+
+.landingHero + .landingSection {
+  padding-top: 30px;
+  border-top: 0;
+}
+
+.documentSection,
+.storyDocument,
+.missionLocationSection,
+.caseRecord,
+.truthDocument,
+.rewardBrief,
+.endingDocument {
+  padding: 0 0 28px;
+  border: 0;
+  border-top: 1px solid rgba(217, 189, 122, 0.26);
+  background: transparent;
+  color: var(--paper);
+}
+
+.documentSection h2,
+.documentSection h3,
+.documentSection p,
+.documentSection li,
+.storyDocument h2,
+.storyDocument h3,
+.storyDocument p,
+.missionLocationSection h2,
+.missionLocationSection h3,
+.missionLocationSection p,
+.caseRecord h2,
+.caseRecord h3,
+.caseRecord p,
+.truthDocument h2,
+.truthDocument h3,
+.truthDocument p,
+.rewardBrief h2,
+.rewardBrief p,
+.endingDocument h2,
+.endingDocument p {
+  color: var(--paper);
+}
+
+.documentSection .sectionLabel,
+.missionLocationSection .sectionLabel,
+.caseRecord .sectionLabel,
+.truthDocument .sectionLabel,
+.rewardBrief .sectionLabel {
+  margin-top: 18px;
+  color: var(--gold-bright);
+}
+
+.landingSection ul {
+  padding: 0;
+  list-style: none;
+}
+
+.landingSection li {
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 247, 232, 0.12);
+}
+
+.landingSection li::before {
+  content: "·";
+  margin-right: 9px;
+  color: var(--gold-bright);
+}
+
+.documentNotice {
+  border-top-color: rgba(140, 47, 57, 0.75);
+}
+
+.documentNotice p:not(.sectionLabel) {
+  color: rgba(255, 247, 232, 0.82);
+}
+
+.teaserIntro {
+  padding-top: 4px;
+}
+
+.teaserIntro h2 {
+  margin-top: 0;
+}
+
+.missionHeader {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: block;
+  padding: calc(env(safe-area-inset-top) + 12px) 0 10px;
+  border: 0;
+  border-radius: 0;
+  background: linear-gradient(180deg, rgba(18, 13, 18, 0.98), rgba(18, 13, 18, 0.8) 78%, transparent);
+  color: var(--paper);
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+}
+
+.missionProgressMeta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.missionProgressMeta span:first-child {
+  color: var(--gold-bright);
+}
+
+.missionProgressMeta span:last-child {
+  color: rgba(255, 247, 232, 0.78);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.missionProgressBar,
+.progressOverview .progressBar {
+  height: 4px;
+  border-radius: 0;
+  background: rgba(255, 247, 232, 0.16);
+}
+
+.missionProgressBar .progressFill,
+.progressOverview .progressFill {
+  border-radius: 0;
+  background: linear-gradient(90deg, var(--wine) 0%, var(--gold-bright) 100%);
+}
+
+.storyDocument {
+  max-width: 42rem;
+  padding-top: 0;
+  border-top: 0;
+}
+
+.storyDocument .locationText {
+  margin-bottom: 24px;
+  color: var(--gold-bright);
+}
+
+.storyText {
+  margin-bottom: 1.4em;
+  font-size: clamp(16px, 1.7vw, 17px);
+  line-height: 2;
+}
+
+.storyCallout {
+  margin: 1.8em 0;
+  padding: 2px 0 2px 16px;
+  border-left: 2px solid var(--gold-bright);
+  color: #fff6df;
+  font-size: 1.1em;
+  line-height: 1.85;
+}
+
+.primaryAction,
+.endingAction,
+.rewardAction {
+  width: 100%;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px 0 0;
+  padding: 18px 20px;
+  border: 1px solid rgba(217, 189, 122, 0.64);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--plum) 0%, var(--wine-deep) 100%);
+  color: var(--paper);
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.35;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.clueNotebookTrigger {
+  width: max-content;
+  min-height: 42px;
+  align-self: center;
+  margin: 2px auto 0;
+  padding: 8px 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--gold-bright);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.clueNotebookTrigger::before {
+  content: "◇";
+  margin-right: 8px;
+}
+
+.clueNotebookTrigger::after {
+  content: "↗";
+  margin-left: 7px;
+  font-size: 12px;
+}
+
+.clueNotebookTrigger:hover:not(:disabled) {
+  border: 0;
+  background: transparent;
+  color: #fff2d1;
+  box-shadow: none;
+}
+
+.missionLocationSection {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.missionLocationSection h2 {
+  margin-bottom: 4px;
+  font-size: 18px;
+}
+
+.missionLocationSection p:not(.sectionLabel) {
+  color: var(--gold-bright);
+  font-weight: 700;
+}
+
+.movementLetter {
+  position: relative;
+  overflow: hidden;
+  padding: 28px 24px;
+  border: 1px solid rgba(185, 151, 91, 0.62);
+  border-radius: 4px;
+  background:
+    linear-gradient(rgba(255, 247, 232, 0.94), rgba(232, 213, 178, 0.94)),
+    repeating-linear-gradient(0deg, rgba(116, 75, 45, 0.06) 0 1px, transparent 1px 5px);
+  color: var(--ink);
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.2);
+}
+
+.movementLetter::before {
+  content: "";
+  position: absolute;
+  top: 17px;
+  right: 20px;
+  width: 34px;
+  height: 34px;
+  border: 2px double rgba(140, 47, 57, 0.65);
+  border-radius: 50%;
+}
+
+.movementLetter .sectionLabel,
+.movementLetter .locationText {
+  color: #865222;
+}
+
+.movementLetter h2,
+.movementLetter h3,
+.movementLetter p {
+  color: var(--ink);
+}
+
+.movementLetter h2 {
+  font-family: "MaruBuri", serif;
+  font-size: 20px;
+}
+
+.caseRecord {
+  max-width: 42rem;
+}
+
+.caseRecord h2 {
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(217, 189, 122, 0.28);
+}
+
+.caseRecord p:not(.sectionLabel) {
+  color: rgba(255, 247, 232, 0.88);
+}
+
+.missionWorkspace {
+  padding: 24px 0 4px;
+  border: 0;
+  border-top: 1px solid rgba(217, 189, 122, 0.35);
+  background: transparent;
+  color: var(--paper);
+}
+
+.missionWorkspace > .sectionLabel,
+.missionWorkspace > h2,
+.missionWorkspace > p {
+  color: var(--paper);
+}
+
+.missionWorkspace > .sectionLabel {
+  color: var(--gold-bright);
+}
+
+.missionWorkspace .ruleBox,
+.missionWorkspace .answerBox {
+  border-color: rgba(217, 189, 122, 0.32);
+  background: rgba(255, 247, 232, 0.08);
+}
+
+.missionWorkspace .ruleBox p,
+.missionWorkspace .ruleBox h3 {
+  color: var(--paper);
+}
+
+.endingCard {
+  position: relative;
+  min-height: 410px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  overflow: hidden;
+  padding: 32px 24px;
+  border: 1px solid rgba(217, 189, 122, 0.55);
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(9, 6, 8, 0.08) 0%, rgba(9, 6, 8, 0.9) 72%, #120d12 100%),
+    url("/story7-poster.png") center / cover no-repeat,
+    var(--night-deep);
+  box-shadow: 0 22px 44px rgba(0, 0, 0, 0.38);
+}
+
+.endingCard::before {
+  content: "ENDING";
+  position: absolute;
+  top: 20px;
+  left: 22px;
+  color: var(--gold-bright);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.endingCard p {
+  position: relative;
+  max-width: 42rem;
+  color: rgba(255, 247, 232, 0.94);
+  font-family: "MaruBuri", serif;
+  line-height: 1.9;
+}
+
+.endingAction {
+  border-color: rgba(217, 189, 122, 0.88);
+  background:
+    linear-gradient(90deg, transparent 0 10%, rgba(217, 189, 122, 0.16) 10% 11%, transparent 11% 89%, rgba(217, 189, 122, 0.16) 89% 90%, transparent 90%),
+    linear-gradient(180deg, #7b453b, #351d32);
+  letter-spacing: 0.06em;
+}
+
+.endingAction::before {
+  content: "✦";
+  margin-right: 9px;
+  color: var(--gold-bright);
+}
+
+.notebookPage .documentSection {
+  padding-bottom: 26px;
+}
+
+.progressOverview {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.progressOverview p:not(.sectionLabel) {
+  color: rgba(255, 247, 232, 0.88);
+}
+
+.notebookSection h2 {
+  margin-bottom: 16px;
+}
+
+.clueMapItem {
+  border-radius: 8px;
+  background: rgba(255, 247, 232, 0.92);
+}
+
+.piece {
+  border-radius: 4px;
+}
+
+.clearPage {
+  justify-content: flex-start;
+  padding-top: max(48px, calc(env(safe-area-inset-top) + 32px));
+}
+
+.truthDocument {
+  padding-top: 8px;
+  border-top-color: rgba(217, 189, 122, 0.5);
+}
+
+.truthDocument strong {
+  color: var(--gold-bright);
+}
+
+.rewardBrief {
+  padding-top: 12px;
+  border-top-color: rgba(217, 189, 122, 0.5);
+}
+
+.rewardAction {
+  position: relative;
+  overflow: hidden;
+  border-color: rgba(217, 189, 122, 0.9);
+  background: linear-gradient(135deg, #704338, #3a2331 58%, #7f4d3f);
+}
+
+.rewardAction::before,
+.rewardAction::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 14px;
+  border-right: 1px dashed rgba(255, 247, 232, 0.45);
+  border-left: 1px dashed rgba(255, 247, 232, 0.45);
+}
+
+.rewardAction::before {
+  left: 14px;
+}
+
+.rewardAction::after {
+  right: 14px;
+}
+
+.rewardPage .couponCard {
+  padding: 28px 24px;
+  border-color: rgba(217, 189, 122, 0.75);
+  background:
+    radial-gradient(circle at 90% 8%, rgba(217, 189, 122, 0.2), transparent 28%),
+    linear-gradient(145deg, #281c24, #150f15);
+  color: var(--paper);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.34);
+}
+
+.rewardPage .couponCard h2,
+.rewardPage .couponCard p,
+.rewardPage .couponCard strong {
+  color: var(--paper);
+}
+
+.rewardPage .couponCard .sectionLabel,
+.rewardPage .couponStampBox span {
+  color: var(--gold-bright);
+}
+
+.rewardPage .couponStampBox {
+  border-radius: 4px;
+  background: rgba(255, 247, 232, 0.06);
+}
+
+.rewardPage .couponStampBox strong {
+  color: #fff5da;
+}
+
+.rewardPage .couponInfoBox p {
+  border-radius: 4px;
+  background: rgba(255, 247, 232, 0.06);
+}
+
+.rewardPage .couponInfoBox strong {
+  color: rgba(255, 247, 232, 0.68);
+}
+
+.rewardPage .couponInfoBox span {
+  color: #fff5da;
+}
+
+@media (min-width: 760px) {
+  .page {
+    padding-top: 52px;
+  }
+
+  .landingHero,
+  .landingHero .heroImage {
+    min-height: 600px;
+    height: 600px;
+  }
+
+  .landingHero .heroContent {
+    padding-bottom: 42px;
+  }
+
+  .storyDocument,
+  .caseRecord,
+  .truthDocument,
+  .rewardBrief,
+  .endingDocument {
+    padding-right: 48px;
+  }
+}
+
+@media (max-width: 420px) {
+  .page {
+    gap: 24px;
+    padding: 28px 16px 44px;
+  }
+
+  .landingPage {
+    padding: 0 0 48px;
+  }
+
+  .landingPage .landingSection {
+    margin-right: 18px;
+    margin-left: 18px;
+  }
+
+  .landingHero,
+  .landingHero .heroImage {
+    min-height: min(520px, 78svh);
+    height: min(520px, 78svh);
+  }
+
+  .landingHero .heroContent {
+    padding: 22px 18px 26px;
+  }
+
+  .missionProgressMeta {
+    font-size: 12px;
+  }
+
+  .storyText {
+    font-size: 16px;
+    line-height: 1.95;
+  }
+
+  .movementLetter,
+  .rewardPage .couponCard {
+    padding: 24px 18px;
+  }
+
+  .endingCard {
+    min-height: 360px;
+    padding: 26px 18px;
+  }
+}
+.missionProgressMeta span:first-child {
+  color: rgba(255, 247, 232, 0.82);
+}
+
+.missionProgressMeta strong {
+  color: var(--gold-bright);
+  font-size: 1.08em;
+}

@@ -1403,10 +1403,12 @@ input::placeholder {
   margin: 18px 0;
 }
 
-.couponInfoBox p {
-  display: flex;
-  justify-content: space-between;
+.couponInfoBox > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(72px, auto) minmax(0, 1fr);
   gap: 12px;
+  align-items: start;
   margin: 0;
   padding: 12px 14px;
   border: 1px solid rgba(217, 189, 122, 0.28);
@@ -1414,14 +1416,18 @@ input::placeholder {
   background: rgba(18, 12, 18, 0.35);
 }
 
-.couponInfoBox strong {
+.couponInfoBox dt {
   color: rgba(255, 247, 232, 0.72);
+  font-weight: 800;
 }
 
-.couponInfoBox span {
+.couponInfoBox dd {
+  min-width: 0;
+  margin: 0;
   color: #fff7e8;
   font-weight: 900;
   text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .posterOnlyPage {
@@ -1843,6 +1849,7 @@ body {
 .storyDocument {
   max-width: 42rem;
   padding-top: 0;
+  padding-bottom: 8px;
   border-top: 0;
 }
 
@@ -1852,18 +1859,34 @@ body {
 }
 
 .storyText {
-  margin-bottom: 1.4em;
+  margin-bottom: 0;
   font-size: clamp(16px, 1.7vw, 17px);
   line-height: 2;
 }
 
+.storyDocument .storyText + .storyText:not(.storyCallout) {
+  margin-top: 0.82em;
+}
+
 .storyCallout {
-  margin: 1.8em 0;
+  margin: 1.9em 0;
   padding: 2px 0 2px 16px;
   border-left: 2px solid var(--gold-bright);
   color: #fff6df;
   font-size: 1.1em;
   line-height: 1.85;
+}
+
+.storyDocument .storyCallout + .storyText {
+  margin-top: 1.35em;
+}
+
+.storyDocument .storyVideoWrap {
+  margin: 28px 0;
+}
+
+.storyDocument .storyVideoWrap + .storyText {
+  margin-top: 1.25em;
 }
 
 .primaryAction,
@@ -2157,40 +2180,86 @@ body {
   color: #d7f5df;
 }
 
-.endingCard {
+.endingHero {
   position: relative;
-  min-height: 410px;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
+  min-height: clamp(250px, 62vw, 330px);
+  aspect-ratio: 16 / 10;
   overflow: hidden;
-  padding: 32px 24px;
   border: 1px solid rgba(217, 189, 122, 0.55);
-  border-radius: 2px;
-  background:
-    linear-gradient(180deg, rgba(9, 6, 8, 0.08) 0%, rgba(9, 6, 8, 0.9) 72%, #120d12 100%),
-    url("/story7-poster.png") center / cover no-repeat,
-    var(--night-deep);
+  border-radius: 4px;
+  background: var(--night-deep);
   box-shadow: 0 22px 44px rgba(0, 0, 0, 0.38);
 }
 
-.endingCard::before {
-  content: "ENDING";
+.endingHero img {
   position: absolute;
-  top: 20px;
-  left: 22px;
-  color: var(--gold-bright);
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.16em;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
 }
 
-.endingCard p {
+.endingHeroOverlay {
   position: relative;
-  max-width: 42rem;
+  z-index: 1;
+  min-height: inherit;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding: 28px 24px;
+  background: linear-gradient(180deg, rgba(9, 6, 8, 0.04), rgba(9, 6, 8, 0.88) 76%, #120d12);
+}
+
+.endingHeroOverlay .eyebrow,
+.endingHeroMeta span {
+  color: var(--gold-bright);
+}
+
+.endingHeroOverlay h1 {
+  margin-bottom: 10px;
+}
+
+.endingHeroMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0;
+}
+
+.endingHeroMeta span {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.endingHeroMeta strong {
+  color: var(--paper);
+  font-size: 16px;
+}
+
+.endingDocument {
+  padding: 28px 22px 26px;
+  border: 1px solid rgba(217, 189, 122, 0.38);
+  border-radius: 4px;
+  background: linear-gradient(180deg, rgba(53, 29, 50, 0.6), rgba(18, 13, 18, 0.92));
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.24);
+}
+
+.endingDocument .sectionLabel {
+  margin: 0 0 16px;
+  color: var(--gold-bright);
+}
+
+.endingText {
+  margin: 0;
   color: rgba(255, 247, 232, 0.94);
   font-family: "MaruBuri", serif;
-  line-height: 1.9;
+  font-size: clamp(16px, 1.7vw, 17px);
+  line-height: 1.95;
+}
+
+.endingText + .endingText {
+  margin-top: 0.82em;
 }
 
 .endingAction {
@@ -2351,16 +2420,16 @@ body {
   color: #fff5da;
 }
 
-.rewardPage .couponInfoBox p {
+.rewardPage .couponInfoBox > div {
   border-radius: 4px;
   background: rgba(255, 247, 232, 0.06);
 }
 
-.rewardPage .couponInfoBox strong {
+.rewardPage .couponInfoBox dt {
   color: rgba(255, 247, 232, 0.68);
 }
 
-.rewardPage .couponInfoBox span {
+.rewardPage .couponInfoBox dd {
   color: #fff5da;
 }
 
@@ -2391,6 +2460,22 @@ body {
   .page {
     gap: 24px;
     padding: 28px 16px 44px;
+  }
+
+  .endingHeroOverlay,
+  .endingDocument {
+    padding-right: 18px;
+    padding-left: 18px;
+  }
+
+  .endingHero {
+    min-height: 244px;
+  }
+
+  .couponInfoBox > div,
+  .clearResultList > div {
+    grid-template-columns: 68px minmax(0, 1fr);
+    gap: 10px;
   }
 
   .missionHeaderTop {
@@ -2587,6 +2672,90 @@ body {
 }
 
 .clearRevealOverlay h1 {
+  margin-bottom: 0;
+}
+
+.clearHeroMeta {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 10px 0 0;
+}
+
+.clearHeroMeta span {
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.clearHeroMeta strong {
+  color: var(--paper);
+  font-size: 16px;
+}
+
+.clearResultList {
+  display: grid;
+  gap: 8px;
+  margin: 18px 0 0;
+}
+
+.clearResultList > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(76px, auto) minmax(0, 1fr);
+  gap: 12px;
+  align-items: baseline;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(74, 38, 63, 0.14);
+}
+
+.clearResultList > div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.clearResultList dt {
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.clearResultList dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--ink);
+  font-weight: 900;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.resetAction,
+.couponRankingAction {
+  width: max-content;
+  min-height: 44px;
+  align-self: center;
+  margin: 4px auto 0;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--gold-bright);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.resetAction {
+  color: rgba(255, 247, 232, 0.56);
+  font-size: 13px;
+}
+
+.couponRankingAction {
+  margin-top: 0;
+}
+
+.couponIntro,
+.couponStaffNote {
   margin-bottom: 0;
 }
 

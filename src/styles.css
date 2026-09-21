@@ -594,23 +594,43 @@ input::placeholder {
 
 .stitchPoint {
   position: absolute;
-  width: 22px;
-  height: 22px;
+  width: clamp(20px, 5.5vw, 24px);
+  height: clamp(20px, 5.5vw, 24px);
   min-height: 0;
   padding: 0;
-  border: 2px solid #4f2b2f;
+  border: 0;
   border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  transform: translate(-50%, -50%);
+  touch-action: manipulation;
+  z-index: 2;
+}
+
+.stitchPoint::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 2px solid #4f2b2f;
+  border-radius: inherit;
   background: #fff7e8;
   box-shadow:
-    0 0 0 3px rgba(255, 247, 232, 0.72),
+    0 0 0 2px rgba(255, 247, 232, 0.72),
     0 4px 12px rgba(42, 32, 37, 0.24);
-  transform: translate(-50%, -50%);
   transition:
-    filter 0.12s ease,
     box-shadow 0.12s ease,
     border-color 0.12s ease,
     background 0.12s ease;
-  z-index: 2;
+}
+
+.stitchPoint::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  pointer-events: none;
+  transition: border-color 0.12s ease;
 }
 
 .stitchPoint:hover:not(:disabled) {
@@ -618,22 +638,28 @@ input::placeholder {
   filter: brightness(1.04);
 }
 
-.stitchPoint.selected {
+.stitchPoint.selected::before {
   border-color: #b36b22;
   background: #ffdca6;
   box-shadow:
     0 0 0 4px rgba(179, 107, 34, 0.25),
     0 8px 18px rgba(42, 32, 37, 0.28);
+}
+
+.stitchPoint.selected::after {
+  border-color: rgba(179, 107, 34, 0.9);
+}
+
+.stitchPoint.selected {
   transform: translate(-50%, -50%) scale(1.06);
 }
 
-.stitchPoint.connected {
+.stitchPoint.connected::before {
   border-color: #b9975b;
   background: #c87582;
   box-shadow:
     0 0 0 3px rgba(200, 117, 130, 0.24),
     0 4px 12px rgba(42, 32, 37, 0.2);
-  transform: translate(-50%, -50%) scale(1);
 }
 
 @keyframes stitchWrong {
@@ -820,6 +846,46 @@ input::placeholder {
 .card .successMessage {
   color: #276749;
   background: rgba(39, 103, 73, 0.12);
+}
+
+.missionHints {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid rgba(217, 189, 122, 0.3);
+  border-radius: 14px;
+  background: rgba(255, 247, 232, 0.06);
+}
+
+.missionHints .hintLabel {
+  margin-bottom: 8px;
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.missionHints .hintText {
+  margin-bottom: 8px;
+  color: var(--paper);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+.hintAction {
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px dashed rgba(217, 189, 122, 0.48);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--gold-bright);
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: none;
+}
+
+.missionHints .smallText {
+  margin-bottom: 0;
+  color: rgba(255, 247, 232, 0.72);
 }
 
 /* progress / clue map */
@@ -1874,6 +1940,30 @@ body {
   color: var(--paper);
 }
 
+.missionWorkspace .choiceQuestionBox h3,
+.missionWorkspace .arScanBox h3,
+.missionWorkspace .arScoreText {
+  color: var(--paper);
+}
+
+.missionWorkspace .choiceQuestionBox p,
+.missionWorkspace .arScanBox > p:not(.message),
+.missionWorkspace .smallText {
+  color: rgba(255, 247, 232, 0.78);
+}
+
+.missionWorkspace .message:not(.successMessage) {
+  border-color: rgba(255, 232, 223, 0.28);
+  background: rgba(140, 47, 57, 0.52);
+  color: #ffe8df;
+}
+
+.missionWorkspace .successMessage {
+  border-color: rgba(199, 240, 213, 0.34);
+  background: rgba(39, 103, 73, 0.46);
+  color: #d7f5df;
+}
+
 .endingCard {
   position: relative;
   min-height: 410px;
@@ -1944,6 +2034,49 @@ body {
 .clueMapItem {
   border-radius: 8px;
   background: rgba(255, 247, 232, 0.92);
+}
+
+.notebookSection .clueMapItem strong {
+  color: var(--ink);
+}
+
+.notebookSection .clueMapItem p {
+  color: var(--ink-soft);
+}
+
+.notebookSection .clueMapItem.current {
+  border-color: rgba(217, 189, 122, 0.72);
+  background: rgba(91, 31, 39, 0.9);
+}
+
+.notebookSection .clueMapItem.current > span {
+  background: var(--gold-bright);
+  color: var(--ink);
+}
+
+.notebookSection .clueMapItem.current strong {
+  color: var(--paper);
+}
+
+.notebookSection .clueMapItem.current p {
+  color: rgba(255, 247, 232, 0.82);
+}
+
+.notebookSection .clueMapItem.cleared {
+  background: rgba(217, 189, 122, 0.9);
+}
+
+.notebookSection .clueMapItem.locked {
+  opacity: 1;
+  background: rgba(255, 247, 232, 0.62);
+}
+
+.notebookSection .clueMapItem.locked strong {
+  color: #5f484c;
+}
+
+.notebookSection .clueMapItem.locked p {
+  color: #705d60;
 }
 
 .piece {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import RankingBoard from "./components/RankingBoard";
 import { gameInfo } from "./data/gameData";
 import { submitRanking } from "./utils/rankingService";
@@ -9,9 +9,11 @@ import "./styles.css";
 const SAVE_KEY = "royalLetterEscapeSave";
 const OLD_SAVE_KEY = "marigoldEscapeSave";
 
-// TEMP: 퍼즐/페이지 구성 확정 전 현장 테스트용 skip 기능.
-// 최종 배포 전 false로 변경하거나 제거할 것.
-const TEMP_ALLOW_PUZZLE_SKIP = true;
+// 현장 테스트에서는 개발 서버 또는 명시적인 Vite flag로만 skip을 노출한다.
+// Production 빌드에서 필요할 때는 VITE_ENABLE_PUZZLE_SKIP=true를 설정한다.
+const TEMP_ALLOW_PUZZLE_SKIP =
+  import.meta.env.DEV || import.meta.env.VITE_ENABLE_PUZZLE_SKIP === "true";
+const EMPTY_STITCH_CONNECTIONS = [];
 
 const rankingSaveMessages = {
   idle: "",
@@ -844,6 +846,57 @@ function clampFlowIndex(index) {
   return index;
 }
 
+function loadInitialGameState() {
+  const defaults = {
+    screen: "poster",
+    inputCode: "",
+    teamName: "",
+    flowIndex: 0,
+    answer: "",
+    openedHints: [],
+    hintCount: 0,
+    pieces: [],
+    message: "",
+    startTime: null,
+    clearTimeSeconds: null,
+    missionStartTime: null,
+    missionTimes: {},
+    rankingSaveStatus: "idle",
+  };
+
+  if (import.meta.env.DEV) {
+    localStorage.removeItem(SAVE_KEY);
+    localStorage.removeItem(OLD_SAVE_KEY);
+    return defaults;
+  }
+
+  const saved = localStorage.getItem(SAVE_KEY);
+
+  if (!saved) return defaults;
+
+  try {
+    const data = JSON.parse(saved);
+
+    return {
+      ...defaults,
+      screen: sanitizeScreen(data.screen),
+      inputCode: data.inputCode || "",
+      teamName: data.teamName || "",
+      flowIndex: clampFlowIndex(data.flowIndex),
+      openedHints: data.openedHints || [],
+      hintCount: data.hintCount || 0,
+      pieces: data.pieces || [],
+      startTime: data.startTime || null,
+      clearTimeSeconds: data.clearTimeSeconds || null,
+      missionStartTime: data.missionStartTime || null,
+      missionTimes: data.missionTimes || {},
+    };
+  } catch {
+    localStorage.removeItem(SAVE_KEY);
+    return defaults;
+  }
+}
+
 function makeInitialTileOrder(correctOrder, initialOrder) {
   if (initialOrder?.length === correctOrder.length) {
     return initialOrder;
@@ -863,7 +916,13 @@ function makeInitialTileOrder(correctOrder, initialOrder) {
   return shuffled;
 }
 
-function TileSwapPuzzle({ pieces, initialOrder, onSolved }) {
+function TileSwapPuzzle({
+  pieces,
+  initialOrder,
+  progress,
+  onProgressChange,
+  onSolved,
+}) {
   const correctOrder = useMemo(
     () =>
       [...pieces]
@@ -879,22 +938,36 @@ function TileSwapPuzzle({ pieces, initialOrder, onSolved }) {
     }, {});
   }, [pieces]);
 
-  const [order, setOrder] = useState(() =>
-    makeInitialTileOrder(correctOrder, initialOrder),
+  const initialProgress = useMemo(
+    () => ({
+      order: makeInitialTileOrder(correctOrder, initialOrder),
+      selectedIndex: null,
+      isSolved: false,
+    }),
+    [correctOrder, initialOrder],
   );
-  const [selectedIndex, setSelectedIndex] = useState(null);
-  const [isSolved, setIsSolved] = useState(false);
+  const order = progress?.order || initialProgress.order;
+  const selectedIndex = progress?.selectedIndex ?? null;
+  const isSolved = progress?.isSolved ?? false;
+
+  const updateProgress = (nextProgress) => {
+    onProgressChange?.({
+      ...initialProgress,
+      ...progress,
+      ...nextProgress,
+    });
+  };
 
   const handleTileClick = (index) => {
     if (isSolved) return;
 
     if (selectedIndex === null) {
-      setSelectedIndex(index);
+      updateProgress({ selectedIndex: index });
       return;
     }
 
     if (selectedIndex === index) {
-      setSelectedIndex(null);
+      updateProgress({ selectedIndex: null });
       return;
     }
 
@@ -904,15 +977,17 @@ function TileSwapPuzzle({ pieces, initialOrder, onSolved }) {
       nextOrder[selectedIndex],
     ];
 
-    setOrder(nextOrder);
-    setSelectedIndex(null);
-
     const solved = nextOrder.every(
       (id, tileIndex) => id === correctOrder[tileIndex],
     );
 
+    updateProgress({
+      order: nextOrder,
+      selectedIndex: null,
+      isSolved: solved,
+    });
+
     if (solved) {
-      setIsSolved(true);
       onSolved?.();
     }
   };
@@ -955,11 +1030,14 @@ function getStitchPairKey(a, b) {
   return [a, b].sort().join("__");
 }
 
-function getDirectedStitchPairKey(from, to) {
-  return `${from}__${to}`;
-}
-
-function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
+function StitchConnectPuzzle({
+  image,
+  points,
+  correctPairs,
+  progress,
+  onProgressChange,
+  onSolved,
+}) {
   const pointMap = useMemo(() => {
     return points.reduce((acc, point) => {
       acc[point.id] = point;
@@ -970,16 +1048,26 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
   const correctPairKeys = useMemo(() => {
     return new Set(
       correctPairs.map(([fromId, toId]) =>
-        getDirectedStitchPairKey(fromId, toId),
+        getStitchPairKey(fromId, toId),
       ),
     );
   }, [correctPairs]);
 
-  const [selectedPointId, setSelectedPointId] = useState(null);
-  const [connections, setConnections] = useState([]);
   const [wrongPairKey, setWrongPairKey] = useState("");
   const [notice, setNotice] = useState("");
-  const [isSolved, setIsSolved] = useState(false);
+  const selectedPointId = progress?.selectedPointId ?? null;
+  const connections = progress?.connections ?? EMPTY_STITCH_CONNECTIONS;
+  const isSolved = progress?.isSolved ?? false;
+
+  const updateProgress = (nextProgress) => {
+    onProgressChange?.({
+      selectedPointId: null,
+      connections: [],
+      isSolved: false,
+      ...progress,
+      ...nextProgress,
+    });
+  };
 
   const connectedPointIds = useMemo(() => {
     const ids = new Set();
@@ -992,14 +1080,6 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
     return ids;
   }, [connections]);
 
-  const resetStitchProgress = (message) => {
-    setConnections([]);
-    setSelectedPointId(null);
-    setWrongPairKey("");
-    setIsSolved(false);
-    setNotice(message);
-  };
-
   const handlePointClick = (pointId) => {
     if (isSolved) return;
     if (connectedPointIds.has(pointId)) {
@@ -1008,13 +1088,13 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
     }
 
     if (!selectedPointId) {
-      setSelectedPointId(pointId);
+      updateProgress({ selectedPointId: pointId });
       setNotice("반대편 구멍을 선택하세요.");
       return;
     }
 
     if (selectedPointId === pointId) {
-      setSelectedPointId(null);
+      updateProgress({ selectedPointId: null });
       setNotice("");
       return;
     }
@@ -1025,9 +1105,9 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
     if (!fromPoint || !toPoint) return;
 
     if (fromPoint.side === toPoint.side) {
-      setWrongPairKey(getDirectedStitchPairKey(selectedPointId, pointId));
+      setWrongPairKey(getStitchPairKey(selectedPointId, pointId));
       setNotice("같은 쪽 구멍끼리는 이을 수 없습니다.");
-      setSelectedPointId(null);
+      updateProgress({ selectedPointId: null });
 
       setTimeout(() => {
         setWrongPairKey("");
@@ -1036,29 +1116,31 @@ function StitchConnectPuzzle({ image, points, correctPairs, onSolved }) {
       return;
     }
 
-    const pairKey = getDirectedStitchPairKey(selectedPointId, pointId);
+    const pairKey = getStitchPairKey(selectedPointId, pointId);
 
     if (!correctPairKeys.has(pairKey)) {
       setWrongPairKey(pairKey);
-      setNotice("실의 방향이 어긋났습니다. 매듭이 모두 풀립니다.");
-      setSelectedPointId(null);
+      setNotice("이 연결은 매듭에 맞지 않습니다. 다른 구멍을 선택하세요.");
+      updateProgress({ selectedPointId: null });
 
       setTimeout(() => {
-        resetStitchProgress(
-          "매듭이 모두 풀렸습니다. 처음부터 다시 이어주세요.",
-        );
-      }, 650);
+        setWrongPairKey("");
+      }, 450);
 
       return;
     }
 
     const nextConnections = [...connections, [selectedPointId, pointId]];
-    setConnections(nextConnections);
-    setSelectedPointId(null);
+    const solved = nextConnections.length === correctPairs.length;
+
+    updateProgress({
+      connections: nextConnections,
+      selectedPointId: null,
+      isSolved: solved,
+    });
     setNotice("");
 
-    if (nextConnections.length === correctPairs.length) {
-      setIsSolved(true);
+    if (solved) {
       setNotice("끊어진 매듭이 다시 이어졌습니다.");
       onSolved?.();
     }
@@ -1339,12 +1421,14 @@ function ARScanGate({
   const targetSignatureRef = useRef(null);
 
   const [cameraError, setCameraError] = useState("");
+  const [technicalError, setTechnicalError] = useState("");
   const [scanMessage, setScanMessage] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [lastScore, setLastScore] = useState(null);
   const [failCount, setFailCount] = useState(0);
 
-  const fallbackVisible = failCount >= maxFailCount || !!cameraError;
+  const fallbackVisible =
+    failCount >= maxFailCount || !!cameraError || !!technicalError;
 
   useEffect(() => {
     const startCamera = async () => {
@@ -1388,15 +1472,15 @@ function ARScanGate({
 
     setIsScanning(true);
     setScanMessage("");
+    setTechnicalError("");
 
     try {
       const video = videoRef.current;
 
       if (!video.videoWidth || !video.videoHeight) {
-        setScanMessage(
-          "카메라가 아직 준비되지 않았습니다. 잠시 후 다시 시도하세요.",
+        setTechnicalError(
+          "카메라 화면을 준비하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.",
         );
-        setIsScanning(false);
         return;
       }
 
@@ -1468,7 +1552,9 @@ function ARScanGate({
         )}% / 필요 유사도 ${Math.round(matchThreshold * 100)}%`,
       );
     } catch {
-      setScanMessage("간판 판정 중 문제가 발생했습니다. 다시 시도하세요.");
+      setTechnicalError(
+        "간판 판정에 필요한 정보를 준비하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.",
+      );
     } finally {
       setIsScanning(false);
     }
@@ -1514,21 +1600,28 @@ function ARScanGate({
       )}
 
       {cameraError && <p className="message">{cameraError}</p>}
+      {technicalError && <p className="message">{technicalError}</p>}
       {scanMessage && <p className="message">{scanMessage}</p>}
 
-      <button onClick={handleScan} disabled={isScanning || !targetImage}>
-        {isScanning ? "간판을 판정하는 중..." : "간판 판정하기"}
+      <button
+        onClick={handleScan}
+        disabled={isScanning || !targetImage || !!cameraError}
+      >
+        {isScanning
+          ? "간판을 판정하는 중..."
+          : technicalError
+            ? "간판 판정 다시 시도하기"
+            : "간판 판정하기"}
       </button>
 
       {fallbackVisible && (
         <button
           className="secondaryButton"
           onClick={() => {
-            setScanMessage("수동 확인으로 다음 조사에 진입합니다.");
             onCompleted?.();
           }}
         >
-          인식이 계속 실패합니다
+          수동으로 현장 확인 후 계속하기
         </button>
       )}
 
@@ -1541,55 +1634,58 @@ function ARScanGate({
 }
 
 function App() {
-  const [screen, setScreen] = useState("poster");
-  const [inputCode, setInputCode] = useState("");
-  const [teamName, setTeamName] = useState("");
-  const [flowIndex, setFlowIndex] = useState(0);
-  const [answer, setAnswer] = useState("");
-  const [openedHints, setOpenedHints] = useState([]);
-  const [hintCount, setHintCount] = useState(0);
-  const [pieces, setPieces] = useState([]);
-  const [message, setMessage] = useState("");
-  const [startTime, setStartTime] = useState(null);
-  const [clearTimeSeconds, setClearTimeSeconds] = useState(null);
-  const [now, setNow] = useState(Date.now());
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [missionStartTime, setMissionStartTime] = useState(null);
-  const [missionTimes, setMissionTimes] = useState({});
-  const [rankingSaveStatus, setRankingSaveStatus] = useState("idle");
+  const [initialGameState] = useState(loadInitialGameState);
+  const [screen, setScreen] = useState(initialGameState.screen);
+  const [inputCode, setInputCode] = useState(initialGameState.inputCode);
+  const [teamName, setTeamName] = useState(initialGameState.teamName);
+  const [flowIndex, setFlowIndex] = useState(initialGameState.flowIndex);
+  const [answer, setAnswer] = useState(initialGameState.answer);
+  const [openedHints, setOpenedHints] = useState(initialGameState.openedHints);
+  const [hintCount, setHintCount] = useState(initialGameState.hintCount);
+  const [pieces, setPieces] = useState(initialGameState.pieces);
+  const [message, setMessage] = useState(initialGameState.message);
+  const [startTime, setStartTime] = useState(initialGameState.startTime);
+  const [clearTimeSeconds, setClearTimeSeconds] = useState(
+    initialGameState.clearTimeSeconds,
+  );
+  const [now, setNow] = useState(() => Date.now());
+  const [missionStartTime, setMissionStartTime] = useState(
+    initialGameState.missionStartTime,
+  );
+  const [missionTimes, setMissionTimes] = useState(initialGameState.missionTimes);
+  const [rankingSaveStatus, setRankingSaveStatus] = useState(
+    initialGameState.rankingSaveStatus,
+  );
   const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(false);
   const [arScanDone, setArScanDone] = useState(false);
+  const [puzzleProgressByNode, setPuzzleProgressByNode] = useState({});
 
+  const previousNavigationRef = useRef(null);
   const currentNode = storyFlow[flowIndex] || storyFlow[0];
 
-  useEffect(() => {
-    setMissionPuzzleSolved(false);
-    setArScanDone(false);
-    setAnswer("");
-    setMessage("");
-  }, [flowIndex]);
+  useLayoutEffect(() => {
+    const nextNavigation = {
+      screen,
+      nodeId: screen === "flow" ? currentNode.id : null,
+    };
+    const previousNavigation = previousNavigationRef.current;
+    previousNavigationRef.current = nextNavigation;
+
+    const isSameNavigation =
+      previousNavigation?.screen === nextNavigation.screen &&
+      previousNavigation?.nodeId === nextNavigation.nodeId;
+
+    if (!previousNavigation || isSameNavigation) return;
+
+    // The document is the scroll container, so reset only after a real screen
+    // or story-flow node transition, not after mission UI state changes.
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [currentNode.id, screen]);
 
   const missionNodes = useMemo(
     () => storyFlow.filter((node) => node.type === "mission"),
     [],
   );
-
-  const currentMissionOrder = useMemo(() => {
-    if (currentNode.type === "mission") {
-      return (
-        missionNodes.findIndex((mission) => mission.id === currentNode.id) + 1
-      );
-    }
-
-    const passedMissionCount = missionNodes.filter((mission) => {
-      const missionFlowIndex = storyFlow.findIndex(
-        (node) => node.id === mission.id,
-      );
-      return missionFlowIndex <= flowIndex;
-    }).length;
-
-    return Math.max(1, passedMissionCount);
-  }, [currentNode.id, currentNode.type, flowIndex, missionNodes]);
 
   const workshopResult = useMemo(
     () => getFastestWorkshop(missionTimes),
@@ -1597,55 +1693,6 @@ function App() {
   );
 
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      localStorage.removeItem(SAVE_KEY);
-      localStorage.removeItem(OLD_SAVE_KEY);
-
-      setScreen("poster");
-      setInputCode("");
-      setTeamName("");
-      setFlowIndex(0);
-      setAnswer("");
-      setOpenedHints([]);
-      setHintCount(0);
-      setPieces([]);
-      setMessage("");
-      setStartTime(null);
-      setClearTimeSeconds(null);
-      setMissionStartTime(null);
-      setMissionTimes({});
-      setRankingSaveStatus("idle");
-      setIsLoaded(true);
-      return;
-    }
-
-    const saved = localStorage.getItem(SAVE_KEY);
-
-    if (saved) {
-      try {
-        const data = JSON.parse(saved);
-
-        setScreen(sanitizeScreen(data.screen));
-        setInputCode(data.inputCode || "");
-        setTeamName(data.teamName || "");
-        setFlowIndex(clampFlowIndex(data.flowIndex));
-        setOpenedHints(data.openedHints || []);
-        setHintCount(data.hintCount || 0);
-        setPieces(data.pieces || []);
-        setStartTime(data.startTime || null);
-        setClearTimeSeconds(data.clearTimeSeconds || null);
-        setMissionStartTime(data.missionStartTime || null);
-        setMissionTimes(data.missionTimes || {});
-      } catch {
-        localStorage.removeItem(SAVE_KEY);
-      }
-    }
-
-    setIsLoaded(true);
-  }, []);
-
-  useEffect(() => {
-    if (!isLoaded) return;
     if (import.meta.env.DEV) return;
 
     const saveData = {
@@ -1664,7 +1711,6 @@ function App() {
 
     localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
   }, [
-    isLoaded,
     screen,
     inputCode,
     teamName,
@@ -1692,7 +1738,7 @@ function App() {
       : clearTimeSeconds || 0;
 
   useEffect(() => {
-    if (!isLoaded || screen !== "clear" || clearTimeSeconds === null) return;
+    if (screen !== "clear" || clearTimeSeconds === null) return;
 
     let isActive = true;
     queueMicrotask(() => {
@@ -1722,7 +1768,6 @@ function App() {
   }, [
     clearTimeSeconds,
     hintCount,
-    isLoaded,
     missionNodes.length,
     screen,
     teamName,
@@ -1750,6 +1795,10 @@ function App() {
     }
 
     setMessage("");
+    setAnswer("");
+    setMissionPuzzleSolved(false);
+    setArScanDone(false);
+    setPuzzleProgressByNode({});
     setFlowIndex(0);
     setScreen("flow");
   };
@@ -1785,6 +1834,8 @@ function App() {
       setMissionStartTime(Date.now());
     }
 
+    setMissionPuzzleSolved(false);
+    setArScanDone(false);
     setAnswer("");
     setMessage("");
     setFlowIndex(nextIndex);
@@ -1802,6 +1853,19 @@ function App() {
   const isHintOpen = (hintIndex) => {
     const hintKey = `${currentNode.id}-${hintIndex}`;
     return openedHints.includes(hintKey);
+  };
+
+  const nextHintIndex =
+    currentNode.hints?.findIndex((_, index) => !isHintOpen(index)) ?? -1;
+
+  const updateCurrentPuzzleProgress = (puzzleType, progress) => {
+    setPuzzleProgressByNode((prev) => ({
+      ...prev,
+      [currentNode.id]: {
+        ...prev[currentNode.id],
+        [puzzleType]: progress,
+      },
+    }));
   };
 
   const completeCurrentMission = () => {
@@ -1885,15 +1949,20 @@ function App() {
     setMissionStartTime(null);
     setMissionTimes({});
     setRankingSaveStatus("idle");
+    setMissionPuzzleSolved(false);
+    setArScanDone(false);
+    setPuzzleProgressByNode({});
   };
 
-  if (!isLoaded) {
-    return (
-      <main className="page centerPage">
-        <p>서찰을 여는 중...</p>
-      </main>
+  const handleResetRequest = () => {
+    const shouldReset = window.confirm(
+      "처음부터 다시 시작하면 진행도, 수집한 단서, 힌트 기록, 기록 시간이 초기화됩니다. 계속할까요?",
     );
-  }
+
+    if (shouldReset) {
+      resetGame();
+    }
+  };
 
   const renderLandingContent = () => (
     <>
@@ -1981,10 +2050,7 @@ function App() {
 
           <button
             className="mainStartButton"
-            onClick={() => {
-              window.scrollTo({ top: 0, behavior: "auto" });
-              setScreen("landing");
-            }}
+            onClick={() => setScreen("landing")}
           >
             조사 안내 보기
           </button>
@@ -2224,6 +2290,10 @@ function App() {
                   <TileSwapPuzzle
                     pieces={currentNode.puzzlePieces}
                     initialOrder={currentNode.initialOrder}
+                    progress={puzzleProgressByNode[currentNode.id]?.tile}
+                    onProgressChange={(progress) =>
+                      updateCurrentPuzzleProgress("tile", progress)
+                    }
                     onSolved={() => {
                       setMissionPuzzleSolved(true);
                       setMessage("");
@@ -2300,6 +2370,10 @@ function App() {
                     image={currentNode.stitchImage}
                     points={currentNode.stitchPoints}
                     correctPairs={currentNode.stitchPairs}
+                    progress={puzzleProgressByNode[currentNode.id]?.stitch}
+                    onProgressChange={(progress) =>
+                      updateCurrentPuzzleProgress("stitch", progress)
+                    }
                     onSolved={() => {
                       setMissionPuzzleSolved(true);
                       setAnswer(currentNode.answer || "STITCH_SOLVED");
@@ -2434,6 +2508,32 @@ function App() {
                     </button>
                   </div>
                 </>
+              )}
+
+              {currentNode.hints?.length > 0 && (
+                <section className="missionHints" aria-label="조사 힌트">
+                  <p className="hintLabel">힌트</p>
+
+                  {currentNode.hints.map((hint, index) =>
+                    isHintOpen(index) ? (
+                      <p key={index} className="hintText">
+                        {hint}
+                      </p>
+                    ) : null,
+                  )}
+
+                  {nextHintIndex >= 0 ? (
+                    <button
+                      type="button"
+                      className="hintAction"
+                      onClick={() => openHint(nextHintIndex)}
+                    >
+                      힌트 {nextHintIndex + 1} 보기
+                    </button>
+                  ) : (
+                    <p className="smallText">모든 힌트를 확인했습니다.</p>
+                  )}
+                </section>
               )}
 
               {TEMP_ALLOW_PUZZLE_SKIP && (
@@ -2639,7 +2739,7 @@ function App() {
           메리골드 쿠폰 확인하기
         </button>
 
-        <button className="secondaryButton" onClick={resetGame}>
+        <button className="secondaryButton" onClick={handleResetRequest}>
           처음부터 다시 하기
         </button>
       </main>

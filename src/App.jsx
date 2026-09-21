@@ -242,6 +242,7 @@ const storyFlow = [
       "며칠 뒤면 궁중의 혼례가 열린다.",
       "그러나 어쩐지, 그 혼례가 무사히 치러지지 않을 것만 같은 불길한 기분이 가슴 한켠에 자리 잡기 시작했다.",
     ],
+    calloutParagraphIndexes: [9],
     buttonText: "다음 실마리로 이동",
   },
   {
@@ -332,6 +333,7 @@ const storyFlow = [
       "그러나 이제는 달랐다.",
       "사건의 배후에 있는 인물이 조금씩 모습을 드러내기 시작하고 있었다.",
     ],
+    calloutParagraphIndexes: [8],
     buttonText: "나녕공방으로 이동",
   },
   {
@@ -637,6 +639,7 @@ const storyFlow = [
       "“오라버니... 이제 그만하십시오.”",
       "그 한마디로, 지금까지의 모든 실마리가 뒤집히기 시작했다.",
     ],
+    calloutParagraphIndexes: [1],
     buttonText: "마지막 어찰 확인",
   },
   {
@@ -2746,14 +2749,31 @@ function App() {
 
         {currentNode.type === "ending" && (
           <>
-            <p className="eyebrow">ENDING</p>
-            <h1>{currentNode.title}</h1>
+            <section className="endingHero">
+              <img src="/story7-poster.png" alt="" />
+              <div className="endingHeroOverlay">
+                <p className="eyebrow">ENDING</p>
+                <h1>{currentNode.title}</h1>
+                <p className="endingHeroMeta">
+                  <span>조사 완료</span>
+                  <strong>
+                    {completedMissionCount} / {missionNodes.length}
+                  </strong>
+                </p>
+              </div>
+            </section>
 
             {renderCompletionNotice()}
 
-            <section className="endingCard">
+            <section className="endingDocument" aria-label="결말 기록">
+              <p className="sectionLabel">Final Record</p>
               {currentNode.paragraphs.map((text, index) => (
-                <p key={`${currentNode.id}-paragraph-${index}`}>{text}</p>
+                <p
+                  className="endingText"
+                  key={`${currentNode.id}-paragraph-${index}`}
+                >
+                  {text}
+                </p>
               ))}
             </section>
 
@@ -2852,10 +2872,65 @@ function App() {
         <section className="clearRevealHero">
           <img src="/story7-poster.png" alt="" />
           <div className="clearRevealOverlay">
-            <p className="eyebrow">Truth Revealed</p>
-            <h1>진실 확인</h1>
+            <p className="eyebrow">CLEAR</p>
+            <h1>조사 완료</h1>
+            <p className="clearHeroMeta">
+              <span>획득 단서</span>
+              <strong>
+                {completedMissionCount} / {missionNodes.length}
+              </strong>
+            </p>
           </div>
         </section>
+
+        <section className="card certificateCard">
+          <p className="eyebrow">CLEAR CERTIFICATE</p>
+          <h2>혼례의 진실을 밝힌 조사관</h2>
+
+          <dl className="clearResultList">
+            <div>
+              <dt>조사관</dt>
+              <dd>{teamName}</dd>
+            </div>
+            <div>
+              <dt>조사 시간</dt>
+              <dd>{formatTime(finalClearSeconds)}</dd>
+            </div>
+            <div>
+              <dt>힌트 사용</dt>
+              <dd>{hintCount}회</dd>
+            </div>
+            <div>
+              <dt>획득 칭호</dt>
+              <dd>{clearTitle}</dd>
+            </div>
+            <div>
+              <dt>엔딩 평가</dt>
+              <dd>{hintEnding}</dd>
+            </div>
+          </dl>
+          {rankingSaveMessages[rankingSaveStatus] && (
+            <p
+              className={`rankingSaveStatus ${
+                rankingSaveStatus === "error" ? "rankingSaveError" : ""
+              }`}
+            >
+              {rankingSaveMessages[rankingSaveStatus]}
+            </p>
+          )}
+        </section>
+
+        <section className="rewardBrief">
+          <p className="sectionLabel">Reward</p>
+          <h2>보상 안내</h2>
+          <p>
+            다음 화면을 제시하면 클리어 인증과 연계 혜택을 받을 수 있습니다.
+          </p>
+        </section>
+
+        <button className="rewardAction" onClick={() => setScreen("coupon")}>
+          메리골드 쿠폰 확인하기
+        </button>
 
         <section className="truthDocument">
           <p className="sectionLabel">Final Letter</p>
@@ -2874,26 +2949,6 @@ function App() {
           </p>
         </section>
 
-        <section className="card certificateCard">
-          <p className="eyebrow">CLEAR CERTIFICATE</p>
-          <h2>혼례의 진실을 밝힌 조사관</h2>
-
-          <p>조사관: {teamName}</p>
-          <p>조사 시간: {formatTime(finalClearSeconds)}</p>
-          <p>힌트 사용: {hintCount}회</p>
-          <p>획득 칭호: {clearTitle}</p>
-          <p>엔딩 평가: {hintEnding}</p>
-          {rankingSaveMessages[rankingSaveStatus] && (
-            <p
-              className={`rankingSaveStatus ${
-                rankingSaveStatus === "error" ? "rankingSaveError" : ""
-              }`}
-            >
-              {rankingSaveMessages[rankingSaveStatus]}
-            </p>
-          )}
-        </section>
-
         <section className="card resultCard">
           <p className="eyebrow">RECOMMENDED WORKSHOP</p>
           <h2>{workshopResult.title}</h2>
@@ -2908,19 +2963,7 @@ function App() {
           </ul>
         </section>
 
-        <section className="rewardBrief">
-          <p className="sectionLabel">Reward</p>
-          <h2>보상 안내</h2>
-          <p>
-            다음 화면을 제시하면 클리어 인증과 연계 혜택을 받을 수 있습니다.
-          </p>
-        </section>
-
-        <button className="rewardAction" onClick={() => setScreen("coupon")}>
-          메리골드 쿠폰 확인하기
-        </button>
-
-        <button className="secondaryButton" onClick={handleResetRequest}>
+        <button className="resetAction" onClick={handleResetRequest}>
           처음부터 다시 하기
         </button>
       </main>
@@ -2932,10 +2975,10 @@ function App() {
 
     return (
       <main className="page centerPage rewardPage">
-        <p className="eyebrow">Marigold Coupon</p>
-        <h1>메리골드 클리어 혜택</h1>
+        <p className="eyebrow">Reward Coupon</p>
+        <h1>메리골드 쿠폰</h1>
 
-        <section className="card couponCard">
+        <section className="card couponCard" aria-label="메리골드 클리어 쿠폰">
           <p className="sectionLabel">Reward Coupon</p>
           <h2>공방거리 탐정단 특별 쿠폰</h2>
 
@@ -2944,37 +2987,47 @@ function App() {
             <strong>방탈출 클리어 인증</strong>
           </div>
 
-          <p>
+          <p className="couponIntro">
             이 화면을 메리골드 매장에 제시하면, 현장에서 사용 가능한 클리어
             혜택을 받을 수 있습니다.
           </p>
 
-          <div className="couponInfoBox">
-            <p>
-              <strong>사용처</strong>
-              <span>메리골드</span>
-            </p>
-            <p>
-              <strong>사용 기한</strong>
-              <span>~ {couponExpireDateText}</span>
-            </p>
-            <p>
-              <strong>조사관</strong>
-              <span>{teamName}</span>
-            </p>
-          </div>
+          <dl className="couponInfoBox">
+            <div>
+              <dt>사용처</dt>
+              <dd>메리골드</dd>
+            </div>
+            <div>
+              <dt>사용 방법</dt>
+              <dd>이 화면을 매장에 제시</dd>
+            </div>
+            <div>
+              <dt>사용 기한</dt>
+              <dd>~ {couponExpireDateText}</dd>
+            </div>
+            <div>
+              <dt>조사관</dt>
+              <dd>{teamName}</dd>
+            </div>
+          </dl>
 
-          <p className="smallText">
+          <p className="smallText couponStaffNote">
             바코드 없이 매장 확인용으로 사용하는 쿠폰입니다. 매장 직원 확인 후
             혜택이 적용됩니다.
           </p>
         </section>
 
-        <button className="primaryAction" onClick={() => setScreen("leaderboard")}>
+        <button
+          className="couponRankingAction"
+          onClick={() => setScreen("leaderboard")}
+        >
           오늘의 조사 랭킹 보기
         </button>
 
-        <button className="secondaryButton" onClick={() => setScreen("clear")}>
+        <button
+          className="secondaryButton couponBackAction"
+          onClick={() => setScreen("clear")}
+        >
           클리어 인증으로 돌아가기
         </button>
       </main>

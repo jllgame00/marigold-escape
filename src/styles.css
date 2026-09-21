@@ -430,7 +430,6 @@ input::placeholder {
 }
 
 /* story / mission common */
-.endingCard p:last-child,
 .ruleBox p:last-child,
 .missionContentFlow p:last-child {
   margin-bottom: 0;
@@ -998,8 +997,7 @@ input::placeholder {
 
 /* ranking / result / certificate */
 .certificateCard,
-.resultCard,
-.endingCard {
+.resultCard {
   border-color: rgba(185, 151, 91, 0.62);
 }
 
@@ -1909,39 +1907,6 @@ body {
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14);
 }
 
-.clueNotebookTrigger {
-  width: max-content;
-  min-height: 42px;
-  align-self: center;
-  margin: 2px auto 0;
-  padding: 8px 4px;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
-  color: var(--gold-bright);
-  font-size: 14px;
-  font-weight: 800;
-  box-shadow: none;
-}
-
-.clueNotebookTrigger::before {
-  content: "◇";
-  margin-right: 8px;
-}
-
-.clueNotebookTrigger::after {
-  content: "↗";
-  margin-left: 7px;
-  font-size: 12px;
-}
-
-.clueNotebookTrigger:hover:not(:disabled) {
-  border: 0;
-  background: transparent;
-  color: #fff2d1;
-  box-shadow: none;
-}
-
 .missionLocationSection {
   padding-top: 0;
   border-top: 0;
@@ -2525,10 +2490,6 @@ body {
     padding: 24px 18px;
   }
 
-  .endingCard {
-    min-height: 360px;
-    padding: 26px 18px;
-  }
 }
 .missionProgressMeta span:first-child {
   color: rgba(255, 247, 232, 0.82);
@@ -2787,6 +2748,58 @@ button:focus-visible {
 button:active:not(:disabled) {
   transform: translateY(0);
   filter: brightness(0.98);
+}
+
+/* final visual consistency */
+.secondaryButton {
+  border-color: rgba(217, 189, 122, 0.46);
+  border-radius: 14px;
+  background: rgba(255, 247, 232, 0.06);
+  color: rgba(255, 247, 232, 0.88);
+  box-shadow: none;
+}
+
+.secondaryButton:hover:not(:disabled) {
+  border-color: rgba(217, 189, 122, 0.74);
+  background: rgba(255, 247, 232, 0.1);
+  color: var(--paper);
+  box-shadow: none;
+}
+
+.endingDocument {
+  padding-bottom: 14px;
+}
+
+.clearPage .rewardBrief {
+  padding-bottom: 0;
+}
+
+.clearPage .rewardAction {
+  margin-top: 0;
+}
+
+.clearPage .truthDocument {
+  padding-bottom: 12px;
+}
+
+.clearPage .certificateCard,
+.clearPage .resultCard,
+.rewardPage .couponCard {
+  border-radius: 14px;
+}
+
+.clearPage .certificateCard::before,
+.clearPage .resultCard::before,
+.rewardPage .couponCard::before {
+  border-radius: 8px;
+}
+
+.rewardPage .couponCard .couponIntro {
+  color: rgba(255, 247, 232, 0.9);
+}
+
+.rewardPage .couponCard .couponStaffNote {
+  color: rgba(255, 247, 232, 0.74);
 }
 
 @media (max-width: 420px) {

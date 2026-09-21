@@ -3092,7 +3092,12 @@ function App() {
 
         <RankingBoard />
 
-        <button onClick={() => setScreen("clear")}>클리어 화면으로</button>
+        <button
+          className="secondaryButton"
+          onClick={() => setScreen("clear")}
+        >
+          클리어 화면으로
+        </button>
       </main>
     );
   }

@@ -1700,6 +1700,42 @@ body {
   color: var(--gold-bright);
 }
 
+.playStepsList {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.playStepsList li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.playStepsList li::before {
+  content: none;
+}
+
+.playStepsList span {
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(217, 189, 122, 0.62);
+  border-radius: 999px;
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.playStepsList strong {
+  color: var(--paper);
+  font-size: 15px;
+}
+
 .documentNotice {
   border-top-color: rgba(140, 47, 57, 0.75);
 }
@@ -1728,6 +1764,46 @@ body {
   color: var(--paper);
   box-shadow: none;
   backdrop-filter: blur(8px);
+}
+
+.missionHeaderTop {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.missionHeaderTop .missionProgressMeta {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.headerNotebookTrigger {
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 7px 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.headerNotebookTrigger span {
+  margin-left: 4px;
+  color: rgba(255, 247, 232, 0.78);
+  font-variant-numeric: tabular-nums;
+}
+
+.headerNotebookTrigger:hover:not(:disabled) {
+  border: 0;
+  background: transparent;
+  color: #fff2d1;
+  box-shadow: none;
 }
 
 .missionProgressMeta {
@@ -1858,6 +1934,49 @@ body {
   font-weight: 700;
 }
 
+.missionGoal {
+  padding: 16px 0 18px;
+  border-top: 1px solid rgba(217, 189, 122, 0.34);
+  border-bottom: 1px solid rgba(217, 189, 122, 0.2);
+}
+
+.missionGoal .sectionLabel {
+  margin: 0 0 8px;
+}
+
+.missionGoal dl,
+.movementMetadata {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.missionGoal dl > div,
+.movementMetadata > div {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  gap: 10px;
+  align-items: baseline;
+}
+
+.missionGoal dt,
+.movementMetadata span {
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.missionGoal dd,
+.movementMetadata strong {
+  min-width: 0;
+  margin: 0;
+  color: var(--paper);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.55;
+}
+
 .movementLetter {
   position: relative;
   overflow: hidden;
@@ -1898,6 +2017,23 @@ body {
   font-size: 20px;
 }
 
+.movementMetadata {
+  margin: 16px 0 20px;
+  padding: 12px 0;
+  border-top: 1px solid rgba(74, 38, 63, 0.2);
+  border-bottom: 1px solid rgba(74, 38, 63, 0.2);
+}
+
+.movementMetadata span {
+  color: #865222;
+}
+
+.movementMetadata strong {
+  color: var(--ink);
+  font-family: "MaruBuri", serif;
+  font-weight: 700;
+}
+
 .caseRecord {
   max-width: 42rem;
 }
@@ -1909,6 +2045,24 @@ body {
 
 .caseRecord p:not(.sectionLabel) {
   color: rgba(255, 247, 232, 0.88);
+}
+
+.caseRecordCompact {
+  padding-bottom: 18px;
+}
+
+.caseRecordCompact .sectionLabel {
+  margin-top: 12px;
+  margin-bottom: 6px;
+}
+
+.caseRecordCompact h2 {
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+}
+
+.caseRecordCompact p:not(.sectionLabel) {
+  margin-bottom: 0;
 }
 
 .missionWorkspace {
@@ -1933,6 +2087,45 @@ body {
 .missionWorkspace .answerBox {
   border-color: rgba(217, 189, 122, 0.32);
   background: rgba(255, 247, 232, 0.08);
+}
+
+.answerLabel {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--paper);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.completionNotice {
+  display: grid;
+  gap: 3px;
+  margin: 2px 0 4px;
+  padding: 14px 16px;
+  border-left: 2px solid var(--gold-bright);
+  background: linear-gradient(90deg, rgba(217, 189, 122, 0.14), transparent);
+}
+
+.completionNotice p,
+.completionNotice strong,
+.completionNotice span {
+  margin: 0;
+}
+
+.completionNotice p {
+  color: var(--gold-bright);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.completionNotice strong {
+  color: var(--paper);
+  font-size: 16px;
+}
+
+.completionNotice span {
+  color: rgba(255, 247, 232, 0.78);
+  font-size: 13px;
 }
 
 .missionWorkspace .ruleBox p,
@@ -2198,6 +2391,20 @@ body {
   .page {
     gap: 24px;
     padding: 28px 16px 44px;
+  }
+
+  .missionHeaderTop {
+    gap: 8px;
+  }
+
+  .headerNotebookTrigger {
+    font-size: 11px;
+  }
+
+  .missionGoal dl > div,
+  .movementMetadata > div {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 8px;
   }
 
   .landingPage {

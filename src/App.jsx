@@ -795,6 +795,40 @@ function normalizeAnswer(value) {
     .toLowerCase();
 }
 
+function getMissionAnswerInputConfig(mission) {
+  const ruleLines = [
+    ...(mission.rule || []),
+    ...(mission.contentBlocks
+      ?.filter((block) => block.type === "rule")
+      .flatMap((block) => block.lines) || []),
+  ];
+  const numericAnswer = /^\d+$/.test(mission.answer || "");
+
+  if (numericAnswer) {
+    const digitCount = mission.answer.length;
+
+    return {
+      label: `${digitCount}자리 숫자`,
+      placeholder: `${digitCount}자리 숫자 입력`,
+      inputMode: "numeric",
+      maxLength: digitCount,
+      formatMessage: `${digitCount}자리 숫자로 입력해주세요.`,
+    };
+  }
+
+  const isSentenceAnswer = ruleLines.some((line) =>
+    line.includes("정답은 완성된 문장"),
+  );
+
+  return {
+    label: isSentenceAnswer ? "완성된 문장" : "정답",
+    placeholder: isSentenceAnswer ? "완성된 문장 입력" : "정답을 입력하세요",
+    inputMode: "text",
+    maxLength: undefined,
+    formatMessage: "",
+  };
+}
+
 function getCouponExpireDateText() {
   const today = new Date();
 
@@ -1659,6 +1693,7 @@ function App() {
   const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(false);
   const [arScanDone, setArScanDone] = useState(false);
   const [puzzleProgressByNode, setPuzzleProgressByNode] = useState({});
+  const [completionNotice, setCompletionNotice] = useState(null);
 
   const previousNavigationRef = useRef(null);
   const currentNode = storyFlow[flowIndex] || storyFlow[0];
@@ -1686,6 +1721,28 @@ function App() {
     () => storyFlow.filter((node) => node.type === "mission"),
     [],
   );
+  const completedMissionCount = missionNodes.filter((mission) =>
+    pieces.includes(mission.piece),
+  ).length;
+  const missionProgressPercent =
+    (completedMissionCount / missionNodes.length) * 100;
+  const missionProgressText =
+    currentNode.type === "mission"
+      ? `미션 ${currentNode.missionId} / ${missionNodes.length}`
+      : completedMissionCount > 0
+        ? `단서 ${completedMissionCount} / ${missionNodes.length}`
+        : "조사 시작";
+  const isLocationDiscoveryMission =
+    currentNode.type === "mission" &&
+    currentNode.instruction?.includes("장소를 찾아라");
+  const currentMissionAction =
+    currentNode.type !== "mission"
+      ? ""
+      : currentNode.puzzleType === "tile-swap" && missionPuzzleSolved
+        ? arScanDone
+          ? currentNode.choiceQuestion?.description || currentNode.instruction
+          : currentNode.afterPuzzleText || currentNode.instruction
+        : currentNode.instruction;
 
   const workshopResult = useMemo(
     () => getFastestWorkshop(missionTimes),
@@ -1796,6 +1853,7 @@ function App() {
 
     setMessage("");
     setAnswer("");
+    setCompletionNotice(null);
     setMissionPuzzleSolved(false);
     setArScanDone(false);
     setPuzzleProgressByNode({});
@@ -1819,6 +1877,7 @@ function App() {
 
   const goNextFlow = () => {
     if (currentNode.type === "ending") {
+      setCompletionNotice(null);
       finishInvestigation();
       return;
     }
@@ -1832,6 +1891,10 @@ function App() {
 
     if (nextNode?.type === "mission") {
       setMissionStartTime(Date.now());
+    }
+
+    if (currentNode.type !== "mission") {
+      setCompletionNotice(null);
     }
 
     setMissionPuzzleSolved(false);
@@ -1890,6 +1953,15 @@ function App() {
     );
 
     const isLastMission = currentMissionListIndex === missionNodes.length - 1;
+    const nextNode = storyFlow[Math.min(flowIndex + 1, storyFlow.length - 1)];
+
+    setCompletionNotice({
+      targetNodeId: nextNode?.id,
+      piece: currentNode.piece,
+      completedMissionCount: pieces.includes(currentNode.piece)
+        ? completedMissionCount
+        : completedMissionCount + 1,
+    });
 
     if (isLastMission && !clearTimeSeconds) {
       const endTime = Date.now();
@@ -1912,6 +1984,27 @@ function App() {
 
     if (!isTemporaryMission) {
       const userAnswer = normalizeAnswer(answer);
+      const inputConfig = getMissionAnswerInputConfig(currentNode);
+
+      if (!userAnswer) {
+        setMessage(
+          currentNode.choiceQuestion
+            ? "정답을 선택해주세요."
+            : "정답을 입력해주세요.",
+        );
+        return;
+      }
+
+      if (inputConfig.formatMessage && !currentNode.choiceQuestion) {
+        const hasNumericFormat =
+          userAnswer.length === currentNode.answer.length &&
+          /^[0-9]+$/.test(userAnswer);
+
+        if (!hasNumericFormat) {
+          setMessage(inputConfig.formatMessage);
+          return;
+        }
+      }
       const acceptedAnswers = currentNode.acceptedAnswers || [
         currentNode.answer,
       ];
@@ -1921,14 +2014,59 @@ function App() {
       );
 
       if (!isCorrect) {
-        setMessage(
-          "아직 진실에 닿지 못했습니다. 현장의 단서와 순서를 다시 확인해보세요.",
-        );
+        setMessage("정답이 맞지 않습니다. 현장의 단서를 다시 확인해보세요.");
         return;
       }
     }
 
     completeCurrentMission();
+  };
+
+  const renderMissionAnswerInput = () => {
+    const inputConfig = getMissionAnswerInputConfig(currentNode);
+    const inputId = `${currentNode.id}-answer`;
+    const feedbackId = `${currentNode.id}-answer-feedback`;
+    const isTemporaryMission = currentNode.answer?.startsWith("TEMP");
+
+    return (
+      <form
+        className="answerBox"
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          submitMissionAnswer();
+        }}
+      >
+        <label className="answerLabel" htmlFor={inputId}>
+          {isTemporaryMission ? "임시 답안" : inputConfig.label}
+        </label>
+        <input
+          id={inputId}
+          name="mission-answer"
+          type="text"
+          value={answer}
+          onChange={(event) => {
+            setAnswer(event.target.value);
+            if (message) setMessage("");
+          }}
+          placeholder={
+            isTemporaryMission ? "임시 퍼즐입니다" : inputConfig.placeholder
+          }
+          inputMode={inputConfig.inputMode}
+          maxLength={inputConfig.maxLength}
+          autoComplete="off"
+          autoCorrect="off"
+          spellCheck="false"
+          enterKeyHint="done"
+          aria-invalid={Boolean(message)}
+          aria-describedby={message ? feedbackId : undefined}
+        />
+
+        <button type="submit">
+          {isTemporaryMission ? "임시로 진행하기" : "단서 확인"}
+        </button>
+      </form>
+    );
   };
 
   const resetGame = () => {
@@ -1949,6 +2087,7 @@ function App() {
     setMissionStartTime(null);
     setMissionTimes({});
     setRankingSaveStatus("idle");
+    setCompletionNotice(null);
     setMissionPuzzleSolved(false);
     setArScanDone(false);
     setPuzzleProgressByNode({});
@@ -1962,6 +2101,20 @@ function App() {
     if (shouldReset) {
       resetGame();
     }
+  };
+
+  const renderCompletionNotice = () => {
+    if (completionNotice?.targetNodeId !== currentNode.id) return null;
+
+    return (
+      <section className="completionNotice" role="status" aria-live="polite">
+        <p>미션 완료</p>
+        <strong>
+          단서 {completionNotice.completedMissionCount} / {missionNodes.length} 획득
+        </strong>
+        <span>{completionNotice.piece}</span>
+      </section>
+    );
   };
 
   const renderLandingContent = () => (
@@ -2009,6 +2162,25 @@ function App() {
             <li key={item}>{item}</li>
           ))}
         </ul>
+      </section>
+
+      <section className="documentSection landingSection playSteps">
+        <p className="sectionLabel">How to Play</p>
+        <h2>플레이 방법</h2>
+        <ol className="playStepsList">
+          <li>
+            <span>1</span>
+            <strong>목적지로 이동</strong>
+          </li>
+          <li>
+            <span>2</span>
+            <strong>현장에서 단서 관찰</strong>
+          </li>
+          <li>
+            <span>3</span>
+            <strong>웹페이지에서 미션 해결</strong>
+          </li>
+        </ol>
       </section>
 
       <section className="documentSection landingSection documentNotice">
@@ -2137,14 +2309,26 @@ function App() {
       <main className="page">
         {startTime && (
           <header className="missionHeader">
-            <div className="missionProgressMeta"><span>
-              진행 <strong>{flowIndex + 1}</strong> / {storyFlow.length}
-            </span>
-            <span>{formatTime(elapsedSeconds)}</span></div>
-            <div className="progressBar missionProgressBar" aria-label="Progress">
+            <div className="missionHeaderTop">
+              <div className="missionProgressMeta">
+                <span>{missionProgressText}</span>
+                <span>{formatTime(elapsedSeconds)}</span>
+              </div>
+              <button
+                type="button"
+                className="headerNotebookTrigger"
+                onClick={() => setScreen("progress")}
+              >
+                단서첩 <span>{completedMissionCount} / {missionNodes.length}</span>
+              </button>
+            </div>
+            <div
+              className="progressBar missionProgressBar"
+              aria-label="획득 단서 진행률"
+            >
               <div
                 className="progressFill"
-                style={{ width: `${((flowIndex + 1) / storyFlow.length) * 100}%` }}
+                style={{ width: `${missionProgressPercent}%` }}
               />
             </div>
           </header>
@@ -2188,6 +2372,8 @@ function App() {
           <>
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
+
+            {renderCompletionNotice()}
 
             <section className="storyDocument">
               {currentNode.location && (
@@ -2235,12 +2421,6 @@ function App() {
               {currentNode.buttonText || "다음 단서로 이동"}
             </button>
 
-            <button
-              className="clueNotebookTrigger"
-              onClick={() => setScreen("progress")}
-            >
-              단서첩 보기
-            </button>
           </>
         )}
 
@@ -2249,6 +2429,22 @@ function App() {
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
 
+            <section className="missionGoal" aria-label="현재 할 일">
+              <p className="sectionLabel">Current Goal</p>
+              <dl>
+                {!isLocationDiscoveryMission && currentNode.location && (
+                  <div>
+                    <dt>목적지</dt>
+                    <dd>{currentNode.location}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt>{isLocationDiscoveryMission ? "탐색 단서" : "현장 확인"}</dt>
+                  <dd>{currentMissionAction}</dd>
+                </div>
+              </dl>
+            </section>
+
             <section className={currentNode.letterParagraphs ? "movementLetter" : "missionLocationSection"}>
               <p className="sectionLabel">Location Guide</p>
               <h2>이동 안내</h2>
@@ -2256,17 +2452,35 @@ function App() {
               {currentNode.letterParagraphs ? (
                 <>
                   <p className="locationText">장소: {currentNode.location}</p>
+                  <div className="movementMetadata">
+                    <div>
+                      <span>목적지</span>
+                      <strong>{currentNode.location}</strong>
+                    </div>
+                    <div>
+                      <span>현장 확인</span>
+                      <strong>{currentNode.letterParagraphs[0]}</strong>
+                    </div>
+                  </div>
                   <h3>{currentNode.letterTitle || "서찰"}</h3>
                   {currentNode.letterParagraphs.map((text, index) => (
                     <p key={`${currentNode.id}-letter-${index}`}>{text}</p>
                   ))}
                 </>
               ) : (
-                <p>{currentNode.location}</p>
+                <p>
+                  {isLocationDiscoveryMission
+                    ? currentMissionAction
+                    : currentNode.location}
+                </p>
               )}
             </section>
 
-            <section className="documentSection caseRecord">
+            <section
+              className={`documentSection caseRecord${
+                currentNode.recordParagraphs ? "" : " caseRecordCompact"
+              }`}
+            >
               <p className="sectionLabel">Case Record</p>
               <h2>{currentNode.recordTitle || "사건 기록"}</h2>
 
@@ -2439,23 +2653,7 @@ function App() {
                     return null;
                   })}
 
-                  <div className="answerBox">
-                    <input
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      placeholder={
-                        currentNode.answer?.startsWith("TEMP")
-                          ? "임시 퍼즐입니다"
-                          : "정답을 입력하세요"
-                      }
-                    />
-
-                    <button onClick={submitMissionAnswer}>
-                      {currentNode.answer?.startsWith("TEMP")
-                        ? "임시로 진행하기"
-                        : "단서 확인"}
-                    </button>
-                  </div>
+                  {renderMissionAnswerInput()}
                 </div>
               ) : (
                 <>
@@ -2490,24 +2688,19 @@ function App() {
                     </div>
                   )}
 
-                  <div className="answerBox">
-                    <input
-                      value={answer}
-                      onChange={(e) => setAnswer(e.target.value)}
-                      placeholder={
-                        currentNode.answer?.startsWith("TEMP")
-                          ? "임시 퍼즐입니다"
-                          : "정답을 입력하세요"
-                      }
-                    />
-
-                    <button onClick={submitMissionAnswer}>
-                      {currentNode.answer?.startsWith("TEMP")
-                        ? "임시로 진행하기"
-                        : "단서 확인"}
-                    </button>
-                  </div>
+                  {renderMissionAnswerInput()}
                 </>
+              )}
+
+              {message && (
+                <p
+                  id={`${currentNode.id}-answer-feedback`}
+                  className="message"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {message}
+                </p>
               )}
 
               {currentNode.hints?.length > 0 && (
@@ -2546,15 +2739,7 @@ function App() {
                 </button>
               )}
 
-              {message && <p className="message">{message}</p>}
             </section>
-
-            <button
-              className="clueNotebookTrigger"
-              onClick={() => setScreen("progress")}
-            >
-              단서첩 보기
-            </button>
 
           </>
         )}
@@ -2563,6 +2748,8 @@ function App() {
           <>
             <p className="eyebrow">ENDING</p>
             <h1>{currentNode.title}</h1>
+
+            {renderCompletionNotice()}
 
             <section className="endingCard">
               {currentNode.paragraphs.map((text, index) => (
@@ -2574,12 +2761,6 @@ function App() {
               {currentNode.buttonText || "클리어 인증 보기"}
             </button>
 
-            <button
-              className="clueNotebookTrigger"
-              onClick={() => setScreen("progress")}
-            >
-              단서첩 보기
-            </button>
           </>
         )}
       </main>
@@ -2595,21 +2776,21 @@ function App() {
         <section className="documentSection progressOverview">
           <p className="sectionLabel">Progress</p>
           <p>
-            이야기 진행률 {flowIndex + 1} / {storyFlow.length}
+            획득 단서 {completedMissionCount} / {missionNodes.length}
           </p>
           <div className="progressBar">
             <div
               className="progressFill"
               style={{
-                width: `${((flowIndex + 1) / storyFlow.length) * 100}%`,
+                width: `${missionProgressPercent}%`,
               }}
             />
           </div>
         </section>
 
         <section className="documentSection notebookSection">
-          <p className="sectionLabel">Craft Street Map</p>
-          <h2>공방거리 조사 지도</h2>
+          <p className="sectionLabel">Investigation Record</p>
+          <h2>조사 현황</h2>
           <div className="clueMap">
             {missionNodes.map((mission) => {
               const isCleared = pieces.includes(mission.piece);

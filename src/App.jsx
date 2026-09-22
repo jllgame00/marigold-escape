@@ -8,8 +8,16 @@ import "./styles.css";
 
 const SAVE_KEY = "royalLetterEscapeSave";
 const OLD_SAVE_KEY = "marigoldEscapeSave";
-const FLOW_SAVE_VERSION = 2;
+const FLOW_SAVE_VERSION = 3;
+const PREVIOUS_FLOW_SAVE_VERSION = 2;
 const LEGACY_STORY_4_FLOW_INDEX = 7;
+const LEGACY_STORY_7_FLOW_INDEX = 13;
+const PREVIOUS_STORY_7_FLOW_INDEX = 15;
+
+const legacyPieceLabelMigrations = {
+  "가짜 서찰의 꽃 실마리": "사랑 안의 행궁 현장 인증",
+  "연꽃 벽의 동물 실마리": "황금빛 불상 관찰 기록",
+};
 
 // 현장 테스트에서는 개발 서버 또는 명시적인 Vite flag로만 skip을 노출한다.
 // Production 빌드에서 필요할 때는 VITE_ENABLE_PUZZLE_SKIP=true를 설정한다.
@@ -469,104 +477,41 @@ const storyFlow = [
     chapter: "다섯 번째 기록",
     title: "질투와 죄 사이",
     paragraphs: [
-      "당신은 지금까지의 조사 결과를 정리하며 사건을 마무리할 준비를 하고 있었다.",
-      "모든 정황은 서화를 가리키고 있었다.",
-      "깨진 도자기, 끊어진 매듭, 사라진 팔찌, 그리고 그녀의 몸종을 목격했다는 궁녀의 증언까지.",
-      "비록 결정적인 증좌는 없었지만, 적어도 누군가를 의심해야 한다면 가장 먼저 이름이 오를 사람은 서화였다.",
-      "사건 기록을 정리하던 당신은 마지막으로 연이와 관련된 문건들을 확인하기 위해 조사실 기록 보관함을 열었다.",
-      "혹시 놓친 부분이 없는지 확인하기 위해서였다.",
-      "그러나 기록철을 펼친 순간, 이상한 점을 발견했다.",
+      "당신은 지금까지의 조사 결과를 정리하며 사건을 마무리할 준비를 하고 있었다. 모든 정황은 서화를 가리키고 있었다. 깨진 도자기, 끊어진 매듭, 사라진 팔찌, 그리고 그녀의 몸종을 목격했다는 궁녀의 증언까지. 비록 결정적인 증좌는 없었지만, 적어도 누군가를 의심해야 한다면 가장 먼저 이름이 오를 사람은 서화였다.",
+      "사건 기록을 정리하던 당신은 마지막으로 연이와 관련된 문건들을 확인하기 위해 조사실 기록 보관함을 열었다. 혹시 놓친 부분이 없는지 확인하기 위해서였다. 그러나 기록철을 펼친 순간, 이상한 점을 발견했다.",
       "연이의 처소 도면이 사라져 있었다.",
-      "처음에는 단순한 착오라 생각했다.",
-      "하지만 일과 기록을 찾으려 했을 때도 마찬가지였다.",
-      "며칠 전까지 분명 보관되어 있던 일과 기록 일부가 통째로 없어져 있었다.",
-      "몸종 명부 또한 누락된 부분이 눈에 띄었다.",
-      "당신은 서둘러 다른 보관함까지 확인했지만 결과는 같았다.",
+      "처음에는 단순한 착오라 생각했다. 하지만 일과 기록을 찾으려 했을 때도 마찬가지였다. 며칠 전까지 분명 보관되어 있던 일과 기록 일부가 통째로 없어져 있었다. 몸종 명부 또한 누락된 부분이 눈에 띄었다. 당신은 서둘러 다른 보관함까지 확인했지만 결과는 같았다.",
       "누군가가 특정 기록들만 골라 가져간 것이 분명했다.",
-      "잠시 기록철을 내려놓은 당신은 생각에 잠겼다.",
-      "서화가 흉수라고 가정하면 모든 사건이 설명될 것 같았다.",
-      "질투심 때문에 도자기를 깨뜨리고, 매듭을 끊고, 팔찌를 숨겼다.",
-      "충분히 가능한 이야기였다.",
+      "잠시 기록철을 내려놓은 당신은 생각에 잠겼다. 서화가 흉수라고 가정하면 모든 사건이 설명될 것 같았다. 질투심 때문에 도자기를 깨뜨리고, 매듭을 끊고, 팔찌를 숨겼다. 충분히 가능한 이야기였다.",
       "하지만 처소 도면은?",
       "일과 기록은?",
       "몸종 명부는?",
-      "그것들은 추억의 물건도 아니었고, 연인을 향한 질투와도 관계가 없는 것들이었다.",
-      "오히려 누군가의 생활을 감시하고 추적하기 위해 필요한 문건들에 가까웠다.",
-      "당신은 무심코 사라진 기록들의 목록을 다시 훑어보았다.",
-      "그리고 문득 등골이 서늘해졌다.",
-      "질투 때문에 물건을 망가뜨리는 것과 사람의 행적을 조사하는 것은 전혀 다른 문제였다.",
-      "전자라면 감정에 휩쓸린 행동이다.",
-      "하지만 후자는 목적이 있는 행동이다.",
-      "누군가가 연이의 일상을 파악하고 있다.",
-      "언제 어디에 있는지.",
-      "누구와 함께 움직이는지.",
-      "어떤 경로로 거처를 드나드는지.",
-      "당신은 천천히 자리에서 일어났다.",
-      "처음에는 단순한 애정 문제라고 생각했다.",
-      "질투와 원망, 그리고 어리석은 경쟁심이 만들어낸 사건이라고 생각했다.",
-      "하지만 이제는 아니었다.",
-      "이 사건은 누군가의 추억을 망가뜨리는 데서 끝나지 않는다.",
-      "당신은 처음으로, 누군가가 익명의 보낸 이 자체를 노리고 있을지도 모른다는 불길한 예감을 느끼기 시작했다.",
+      "그것들은 추억의 물건도 아니었고, 연인을 향한 질투와도 관계가 없는 것들이었다. 오히려 누군가의 생활을 감시하고 추적하기 위해 필요한 문건들에 가까웠다. 당신은 무심코 사라진 기록들의 목록을 다시 훑어보았다. 그리고 문득 등골이 서늘해졌다. 질투 때문에 물건을 망가뜨리는 것과 사람의 행적을 조사하는 것은 전혀 다른 문제였다.",
     ],
-    buttonText: "종이노리로 이동",
+    buttonText: "다음 현장 조사로",
   },
   {
     id: "mission-5",
     type: "mission",
     missionId: 5,
     chapter: "미션 5",
-    title: "피어나는 궤적",
-    location: "꽃을 담다 종이노리",
-    piece: "가짜 서찰의 꽃 실마리",
-    intro:
-      "문제의 서찰은 연이가 쓴 것으로 알려져 있었다. 그러나 종이의 질감과 접힌 방향, 그리고 꽃에 남은 색의 배열은 다른 사실을 말하고 있었다.",
-    instruction:
-      "꽃을 담다 종이노리 매장의 상단 문양과 매장 앞 데크에 놓인 꽃을 확인하라.",
-    contentBlocks: [
-      {
-        type: "text",
-        text: "먼저 매장 정면 상단의 장식 문양을 확인하라.",
-      },
-      {
-        type: "text",
-        text: "가장 반복해서 나타나는 문양이 무엇인지 찾는다.",
-      },
-      {
-        type: "image",
-        src: "/mission/mission5-jonginori-pattern.png",
-        alt: "피어나는 궤적 참고 이미지 1",
-      },
-      {
-        type: "text",
-        text: "그 문양이 꽃이라면, 매장 앞 데크에 놓인 꽃의 색을 왼쪽부터 오른쪽 순서대로 읽어라.",
-      },
-      {
-        type: "image",
-        src: "/mission/mission5-jonginori-flowers.png",
-        alt: "피어나는 궤적 참고 이미지 2",
-      },
-      {
-        type: "text",
-        text: "색마다 대응되는 단어를 조합해 실마리를 완성하라.",
-      },
-      {
-        type: "rule",
-        lines: [
-          "분홍 = 날",
-          "노랑 = 두",
-          "하양 = 하나의",
-          "빨강 = 이름",
-          "정답은 완성된 문장이다.",
-        ],
-      },
-    ],
+    title: "현장 사진 인증",
+    location: "팝업현장 주변 50m",
+    piece: "사랑 안의 행궁 현장 인증",
+    intro: "현장을 확인해 사진 인증을 진행한다.",
+    instruction: "팝업현장 주변 50m 내에서 '사랑 안의 행궁'을 찾아 사진 찍으세요.",
+    puzzleType: "ar-scan",
+    arTargetImage: "/mission/mission5-love-haenggung-reference.jpg",
+    arScanTargetName: "현장 사진",
+    arScanGuideDescription:
+      "반투명 기준 이미지와 실제 현장 사진이 최대한 겹치도록 카메라를 맞춘 뒤 판정하세요.",
+    arMatchThreshold: 0.55,
+    arMaxFailCount: 3,
     hints: [
-      "상단 장식 문양에서 가장 많이 반복되는 모양을 먼저 확인하라.",
-      "가장 반복되는 문양이 꽃이라면, 데크 앞 꽃의 색 순서를 읽으면 된다.",
-      "색 이름을 입력하는 것이 아니라, 색에 대응되는 단어를 조합해야 한다.",
-      "띄어쓰기는 정답 판정에 영향을 주지 않는다.",
+      "꽃으로 장식된 아치를 찾아보세요.",
+      "붉은 아치와 흰 울타리가 있는 골목을 살펴보세요.",
+      "아치 가운데 걸린 글자를 확인해보세요.",
     ],
-    answer: "하나의날두이름",
   },
   {
     id: "story-6",
@@ -575,24 +520,15 @@ const storyFlow = [
     title: "흔들리는 확신",
     paragraphs: [
       "연이의 기록 일부가 사라진 사실을 확인한 당신은 사건을 처음부터 다시 정리하기 시작했다.",
-      "깨진 도자기.",
-      "끊어진 매듭.",
-      "사라진 팔찌.",
-      "모든 증좌는 여전히 왕비 후보 서화를 가리키고 있었다.",
-      "그러나 이상한 점이 있었다.",
-      "지금까지 서화가 저지른 일들은 모두 비슷했다.",
-      "추억이 담긴 물건을 망가뜨리고, 연서를 훼손하고, 두 사람의 사이를 멀어지게 만드는 것.",
-      "질투에 사로잡힌 사람이 저지를 법한 행동들이었다.",
-      "하지만 최근 사라진 것은 물건이 아니었다.",
-      "연이의 일과 기록.",
-      "처소 도면.",
-      "몸종들의 근무 기록.",
-      "누군가가 연이의 일상을 조사하고 있었다.",
-      "당신은 쉽게 설명할 수 없는 불안감을 느꼈다.",
+      "깨진 도자기, 끊어진 매듭, 사라진 팔찌. 모든 증좌는 여전히 왕비 후보 서화를 가리키고 있었다. 그러나 이상한 점이 있다면, 지금까지 서화가 저지른 일들은 모두 비슷했다는 것이다.",
+      "추억이 담긴 물건을 망가뜨리고, 연서를 훼손하고, 두 사람의 사이를 멀어지게 만드는 것. 질투에 사로잡힌 사람이 감정에 휩쓸려 저지를 법한 행동들이었다. 하지만 최근 사라진 것은 물건이 아니었다.",
+      "누군가가 연이의 일상을 파악하고 있다.",
+      "언제 어디에 있는지.",
+      "누구와 함께 움직이는지.",
+      "어떤 경로로 거처를 드나드는지.",
+      "당신은 천천히 자리에서 일어났다. 처음에는 단순한 애정 문제라고 생각했다. 질투와 원망, 그리고 어리석은 경쟁심이 만들어낸 사건이라고 생각했다. 하지만 이제는 아니었다. 이 사건은 누군가의 추억을 망가뜨리는 데서 끝나지 않는다. 당신은 처음으로, 누군가가 익명의 보낸 이 자체를 노리고 있을지도 모른다는 불길한 예감을 느끼기 시작했다.",
       "그날 밤, 사건에 대한 생각을 정리하기 위해 궁 안뜰을 걷던 당신은 우연히 서화를 마주쳤다.",
-      "달빛이 희미하게 내려앉은 정자 아래, 그녀는 홀로 앉아 있었다.",
-      "평소의 당당한 모습과 달리 어딘가 지쳐 보였다.",
-      "잠시 망설이던 당신은 조심스럽게 입을 열었다.",
+      "달빛이 희미하게 내려앉은 정자 아래, 그녀는 홀로 앉아 있었다. 평소의 당당한 모습과 달리 어딘가 지쳐 보였다. 잠시 망설이던 당신은 조심스럽게 입을 열었다.",
       "“연이를 미워하십니까?”",
       "서화는 고개를 들었다.",
       "잠시 침묵이 흘렀다.",
@@ -602,26 +538,6 @@ const storyFlow = [
       "그녀는 잠시 시선을 내리깔았다.",
       "“그 아이는 늘 모든 것을 가지고 있었으니까요.”",
       "질투와 체념이 뒤섞인 목소리였다.",
-      "그러나 곧 그녀는 작게 웃음을 흘렸다.",
-      "“하지만…”",
-      "잠시 말을 고르던 그녀가 천천히 말했다.",
-      "“그 아이가 다치기를 바란 적은 없습니다.”",
-      "당신은 아무 말도 할 수 없었다.",
-      "그녀의 표정에는 거짓을 숨기는 사람의 초조함이 없었다.",
-      "오히려 오랫동안 가슴속에 품어온 질투를 처음으로 인정하는 사람의 씁쓸함이 담겨 있었다.",
-      "서화는 자리에서 일어나 먼 하늘을 바라보았다.",
-      "“이제 곧 혼례가 열리겠지요.”",
-      "그녀는 작게 미소를 지었다.",
-      "“전하께서는 끝내 저를 보지 않으셨습니다.”",
-      "그 말을 남긴 채 그녀는 어둠 속으로 걸어갔다.",
-      "당신은 한동안 그 뒷모습을 바라보았다.",
-      "서화는 분명 잘못을 저질렀다.",
-      "도자기를 깨뜨리고,",
-      "매듭을 끊고,",
-      "팔찌를 숨겼다.",
-      "하지만…",
-      "정말 이 사람이 연이를 해하려 했을까?",
-      "처음으로 당신의 확신이 흔들리기 시작했다.",
     ],
     buttonText: "다음 실마리로 이동",
   },
@@ -629,29 +545,42 @@ const storyFlow = [
     id: "mission-6",
     type: "mission",
     missionId: 6,
-    chapter: "길거리 실마리",
-    title: "두 해 사이의 짐승",
-    location: "길거리 연꽃 벽화",
-    piece: "연꽃 벽의 동물 실마리",
-    image: "/mission/mission6-lotus-crop.png",
-    intro:
-      "종이노리에서 얻은 문장, “하나의 날 두 이름”은 다음 벽을 찾는 실마리였다.",
-    instruction:
-      "연꽃이 크게 피어난 곳을 찾아라. 그 꽃의 양옆 아래에는 해를 바라보는 두 꽃이 놓여 있으니, 진실은 그 사이에 숨어 있다.",
+    chapter: "미션 6",
+    title: "황금빛 불상 개수",
+    location: "서북공심돈",
+    piece: "황금빛 불상 관찰 기록",
+    intro: "황금빛 불상을 찾아 총 개수를 확인한다.",
+    instruction: "바닥에 새겨진 '서북공심돈'을 찾아 그 위에 서보세요.",
     rule: [
-      "글로 남겨진 말들은 잠시 잊고, 그림 속 생명들의 모습만을 살피라.",
-      "연꽃의 왼쪽과 오른쪽 아래에 놓인 두 해바라기 사이를 확인하라.",
-      "그 사이에 놓인 그림들 가운데 같은 짐승이 두 번 모습을 드러낼 것이다.",
-      "그 짐승의 이름이 곧 그대가 찾는 답이다.",
+      "그 자리에서 산을 바라보면 황금빛 불상을 발견할 수 있습니다.",
+      "불상 주변을 자세히 관찰하여 보이는 불상의 총 개수를 맞혀보세요.",
     ],
     hints: [
-      "연꽃 그림 자체가 정답은 아니다. 연꽃은 벽을 찾기 위한 기준점이다.",
-      "‘해를 바라보는 두 꽃’은 해바라기를 뜻한다.",
-      "글씨가 적힌 작은 조각은 제외하고, 그림만 보아라.",
-      "같은 짐승이 두 번 등장한다. 붉은 벼슬이 실마리다.",
+      "잘 보이지 않는 불상도 숨어 있습니다. 휴대폰 카메라를 확대해 하나씩 찬찬히 확인해보세요!",
     ],
-    answer: "닭",
-    acceptedAnswers: ["닭", "수탉", "닭그림", "수탉그림"],
+    answer: "6",
+    answerInput: "numeric",
+  },
+  {
+    id: "story-6-part-b",
+    type: "story",
+    chapter: "여섯 번째 기록",
+    title: "흔들리는 확신",
+    paragraphs: [
+      "“그 아이는 늘 모든 것을 가지고 있었으니까요.”",
+      "그러나 곧 그녀는 작게 웃음을 흘렸다.",
+      "“하지만…”",
+      "잠시 말을 고르던 그녀가 천천히 말했다.",
+      "“그 아이가 다치기를 바란 적은 없습니다.”",
+      "당신은 아무 말도 할 수 없었다. 그녀의 표정에는 거짓을 숨기는 사람의 초조함이 없었다. 오히려 오랫동안 가슴속에 품어온 질투를 처음으로 인정하는 사람의 씁쓸함이 담겨 있었다. 서화는 자리에서 일어나 먼 하늘을 바라보았다.",
+      "“이제 곧 혼례가 열리겠지요.”",
+      "그녀는 작게 미소를 지었다.",
+      "“전하께서는 끝내 저를 보지 않으셨습니다.”",
+      "그 말을 남긴 채 그녀는 어둠 속으로 걸어갔다. 당신은 한동안 그 뒷모습을 바라보았다. 서화는 분명 잘못을 저질렀다. 두 남녀의 어린 시절부터 이어진 추억과 사랑, 그리고 서로에 대한 믿음이 깃든 물건들을 제 욕심에 눈이 멀어 모조리 없애버렸다.",
+      "하지만… 정말 이 사람이 연이를 해하려 했을까?",
+      "처음으로 당신의 확신이 흔들리기 시작했다.",
+    ],
+    buttonText: "다음 실마리로 이동",
   },
   {
     id: "story-7",
@@ -834,17 +763,22 @@ function getMissionAnswerInputConfig(mission) {
       ?.filter((block) => block.type === "rule")
       .flatMap((block) => block.lines) || []),
   ];
-  const numericAnswer = /^\d+$/.test(mission.answer || "");
+  const numericAnswer =
+    mission.answerInput === "numeric" || /^\d+$/.test(mission.answer || "");
 
   if (numericAnswer) {
-    const digitCount = mission.answer.length;
+    const digitCount = /^\d+$/.test(mission.answer || "")
+      ? mission.answer.length
+      : undefined;
 
     return {
-      label: `${digitCount}자리 숫자`,
-      placeholder: `${digitCount}자리 숫자 입력`,
+      label: digitCount ? `${digitCount}자리 숫자` : "숫자",
+      placeholder: digitCount ? `${digitCount}자리 숫자 입력` : "숫자 입력",
       inputMode: "numeric",
       maxLength: digitCount,
-      formatMessage: `${digitCount}자리 숫자로 입력해주세요.`,
+      formatMessage: digitCount
+        ? `${digitCount}자리 숫자로 입력해주세요.`
+        : "숫자로 입력해주세요.",
     };
   }
 
@@ -912,6 +846,30 @@ function clampFlowIndex(index) {
   return index;
 }
 
+function migrateFlowIndexFromVersion2(flowIndex) {
+  const version2FlowIndex = clampFlowIndex(flowIndex);
+
+  if (version2FlowIndex >= PREVIOUS_STORY_7_FLOW_INDEX) {
+    return clampFlowIndex(version2FlowIndex + 1);
+  }
+
+  return version2FlowIndex;
+}
+
+function migrateFlowIndexFromLegacyVersion(flowIndex) {
+  const legacyFlowIndex = clampFlowIndex(flowIndex);
+
+  if (legacyFlowIndex >= LEGACY_STORY_7_FLOW_INDEX) {
+    return clampFlowIndex(legacyFlowIndex + 3);
+  }
+
+  if (legacyFlowIndex > LEGACY_STORY_4_FLOW_INDEX) {
+    return clampFlowIndex(legacyFlowIndex + 2);
+  }
+
+  return legacyFlowIndex;
+}
+
 function getSavedFlowIndex(data) {
   const savedNodeIndex = storyFlow.findIndex(
     (node) => node.id === data.flowNodeId,
@@ -923,15 +881,17 @@ function getSavedFlowIndex(data) {
     return clampFlowIndex(data.flowIndex);
   }
 
-  const legacyFlowIndex = clampFlowIndex(data.flowIndex);
-
-  // Saves before the story split only tracked an ordinal index. Nodes after
-  // the original story-4 shifted forward by the new interlude and Story Part B.
-  if (legacyFlowIndex > LEGACY_STORY_4_FLOW_INDEX) {
-    return clampFlowIndex(legacyFlowIndex + 2);
+  if (data.flowSaveVersion === PREVIOUS_FLOW_SAVE_VERSION) {
+    return migrateFlowIndexFromVersion2(data.flowIndex);
   }
 
-  return legacyFlowIndex;
+  return migrateFlowIndexFromLegacyVersion(data.flowIndex);
+}
+
+function migrateSavedPieces(pieces, flowSaveVersion) {
+  if (flowSaveVersion === FLOW_SAVE_VERSION) return pieces;
+
+  return pieces.map((piece) => legacyPieceLabelMigrations[piece] || piece);
 }
 
 function loadInitialGameState() {
@@ -973,7 +933,7 @@ function loadInitialGameState() {
       flowIndex: getSavedFlowIndex(data),
       openedHints: data.openedHints || [],
       hintCount: data.hintCount || 0,
-      pieces: data.pieces || [],
+      pieces: migrateSavedPieces(data.pieces || [], data.flowSaveVersion),
       startTime: data.startTime || null,
       clearTimeSeconds: data.clearTimeSeconds || null,
       missionStartTime: data.missionStartTime || null,
@@ -1502,6 +1462,9 @@ function ARScanGate({
   targetImage,
   matchThreshold = 0.55,
   maxFailCount = 3,
+  targetName = "간판",
+  guideDescription =
+    "반투명 기준 이미지와 실제 가게 간판이 최대한 겹치도록 카메라를 맞춘 뒤 판정하세요.",
   onCompleted,
 }) {
   const videoRef = useRef(null);
@@ -1541,7 +1504,7 @@ function ARScanGate({
         }
       } catch {
         setCameraError(
-          "카메라 권한을 허용해야 간판 확인을 진행할 수 있습니다.",
+          `카메라 권한을 허용해야 ${targetName} 확인을 진행할 수 있습니다.`,
         );
       }
     };
@@ -1553,7 +1516,7 @@ function ARScanGate({
         streamRef.current.getTracks().forEach((track) => track.stop());
       }
     };
-  }, []);
+  }, [targetName]);
 
   const handleScan = async () => {
     if (isScanning || !videoRef.current) return;
@@ -1622,7 +1585,7 @@ function ARScanGate({
       setLastScore(score);
 
       if (score >= matchThreshold) {
-        setScanMessage("간판 확인 완료. 다음 조사로 이동합니다.");
+        setScanMessage(`${targetName} 확인 완료. 다음 조사로 이동합니다.`);
 
         setTimeout(() => {
           onCompleted?.();
@@ -1641,7 +1604,7 @@ function ARScanGate({
       );
     } catch {
       setTechnicalError(
-        "간판 판정에 필요한 정보를 준비하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.",
+        `${targetName} 판정에 필요한 정보를 준비하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.`,
       );
     } finally {
       setIsScanning(false);
@@ -1650,12 +1613,9 @@ function ARScanGate({
 
   return (
     <div className="arScanBox">
-      <h3>간판 AR 확인</h3>
+      <h3>{targetName} AR 확인</h3>
 
-      <p>
-        반투명 기준 이미지와 실제 가게 간판이 최대한 겹치도록 카메라를 맞춘 뒤
-        판정하세요.
-      </p>
+      <p>{guideDescription}</p>
 
       <div className="arCameraFrame">
         <video ref={videoRef} className="arVideo" autoPlay playsInline muted />
@@ -1664,7 +1624,7 @@ function ARScanGate({
           <img
             className="arOverlayImage"
             src={targetImage}
-            alt="간판 기준 이미지"
+            alt={`${targetName} 기준 이미지`}
           />
         )}
 
@@ -1696,10 +1656,10 @@ function ARScanGate({
         disabled={isScanning || !targetImage || !!cameraError}
       >
         {isScanning
-          ? "간판을 판정하는 중..."
+          ? `${targetName}을 판정하는 중...`
           : technicalError
-            ? "간판 판정 다시 시도하기"
-            : "간판 판정하기"}
+            ? `${targetName} 판정 다시 시도하기`
+            : `${targetName} 판정하기`}
       </button>
 
       {fallbackVisible && (
@@ -1714,8 +1674,8 @@ function ARScanGate({
       )}
 
       <p className="smallText">
-        너무 어둡거나, 간판이 화면에서 작거나, 각도가 많이 틀어지면 유사도가
-        낮게 나올 수 있습니다.
+        너무 어둡거나, {targetName}이 화면에서 작거나, 각도가 많이 틀어지면
+        유사도가 낮게 나올 수 있습니다.
       </p>
     </div>
   );
@@ -2071,8 +2031,8 @@ function App() {
 
       if (inputConfig.formatMessage && !currentNode.choiceQuestion) {
         const hasNumericFormat =
-          userAnswer.length === currentNode.answer.length &&
-          /^[0-9]+$/.test(userAnswer);
+          /^[0-9]+$/.test(userAnswer) &&
+          (!inputConfig.maxLength || userAnswer.length === inputConfig.maxLength);
 
         if (!hasNumericFormat) {
           setMessage(inputConfig.formatMessage);
@@ -2641,6 +2601,19 @@ function App() {
                       </button>
                     </>
                   )}
+                </>
+              ) : currentNode.puzzleType === "ar-scan" ? (
+                <>
+                  <p>{currentNode.instruction}</p>
+
+                  <ARScanGate
+                    targetImage={currentNode.arTargetImage}
+                    matchThreshold={currentNode.arMatchThreshold || 0.55}
+                    maxFailCount={currentNode.arMaxFailCount || 3}
+                    targetName={currentNode.arScanTargetName}
+                    guideDescription={currentNode.arScanGuideDescription}
+                    onCompleted={completeCurrentMission}
+                  />
                 </>
               ) : currentNode.puzzleType === "stitch-connect" ? (
                 <>

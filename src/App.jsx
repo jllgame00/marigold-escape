@@ -8,6 +8,8 @@ import "./styles.css";
 
 const SAVE_KEY = "royalLetterEscapeSave";
 const OLD_SAVE_KEY = "marigoldEscapeSave";
+const FLOW_SAVE_VERSION = 2;
+const LEGACY_STORY_4_FLOW_INDEX = 7;
 
 // 현장 테스트에서는 개발 서버 또는 명시적인 Vite flag로만 skip을 노출한다.
 // Production 빌드에서 필요할 때는 VITE_ENABLE_PUZZLE_SKIP=true를 설정한다.
@@ -376,6 +378,32 @@ const storyFlow = [
       "물론 확실한 증좌는 없었다.",
       "그러나 지금까지 드러난 정황만 놓고 본다면 가장 유력한 인물은 분명 서화였다.",
       "당신은 서둘러 사건 기록을 정리한 뒤, 평소 누구보다 신뢰하던 사헌부 감찰 청휘를 찾아갔다.",
+    ],
+    buttonText: "벽화의 단서 확인",
+  },
+  {
+    id: "interlude-pine-branches",
+    type: "interludeMission",
+    chapter: "현장 관찰",
+    title: "소나무 나뭇가지 수",
+    location: "우물을 등진 정면의 벽화",
+    goalSummary: "벽화 속 소나무 관찰 → 나뭇가지 수 세기 → 숫자 입력",
+    intro: "벽화 속 소나무의 나뭇가지 수를 확인한다.",
+    instruction:
+      "한데 우물을 등지고 피어있는 꽃 한 가운데에서 보이는 벽화 속의 소나무 나뭇가지 수를 적으시오",
+    hints: [
+      "우물을 등진 상태에서 정면의 벽화를 확인해보세요.",
+      "꽃 한가운데에서 보이는 소나무를 찾아보세요.",
+      "소나무의 나뭇가지만 세면 됩니다.",
+    ],
+    answer: "9",
+  },
+  {
+    id: "story-4-part-b",
+    type: "story",
+    chapter: "네 번째 기록",
+    title: "너무 빠른 종결",
+    paragraphs: [
       "청휘는 당신이 처음 감찰 업무를 맡았을 때부터 곁에서 가르침을 주었던 인물이었다.",
       "누구보다 깐깐했고, 작은 모순 하나도 절대 그냥 넘어가지 않는 사람.",
       "그래서 궁 안에서는 그를 두고 ‘한 번 물면 놓지 않는 사냥개’라 부르곤 했다.",
@@ -795,6 +823,10 @@ function normalizeAnswer(value) {
     .toLowerCase();
 }
 
+function isMissionFlowNode(node) {
+  return node?.type === "mission" || node?.type === "interludeMission";
+}
+
 function getMissionAnswerInputConfig(mission) {
   const ruleLines = [
     ...(mission.rule || []),
@@ -880,6 +912,28 @@ function clampFlowIndex(index) {
   return index;
 }
 
+function getSavedFlowIndex(data) {
+  const savedNodeIndex = storyFlow.findIndex(
+    (node) => node.id === data.flowNodeId,
+  );
+
+  if (savedNodeIndex >= 0) return savedNodeIndex;
+
+  if (data.flowSaveVersion === FLOW_SAVE_VERSION) {
+    return clampFlowIndex(data.flowIndex);
+  }
+
+  const legacyFlowIndex = clampFlowIndex(data.flowIndex);
+
+  // Saves before the story split only tracked an ordinal index. Nodes after
+  // the original story-4 shifted forward by the new interlude and Story Part B.
+  if (legacyFlowIndex > LEGACY_STORY_4_FLOW_INDEX) {
+    return clampFlowIndex(legacyFlowIndex + 2);
+  }
+
+  return legacyFlowIndex;
+}
+
 function loadInitialGameState() {
   const defaults = {
     screen: "poster",
@@ -916,7 +970,7 @@ function loadInitialGameState() {
       screen: sanitizeScreen(data.screen),
       inputCode: data.inputCode || "",
       teamName: data.teamName || "",
-      flowIndex: clampFlowIndex(data.flowIndex),
+      flowIndex: getSavedFlowIndex(data),
       openedHints: data.openedHints || [],
       hintCount: data.hintCount || 0,
       pieces: data.pieces || [],
@@ -1733,10 +1787,10 @@ function App() {
         ? `단서 ${completedMissionCount} / ${missionNodes.length}`
         : "조사 시작";
   const isLocationDiscoveryMission =
-    currentNode.type === "mission" &&
+    isMissionFlowNode(currentNode) &&
     currentNode.instruction?.includes("장소를 찾아라");
   const currentMissionAction =
-    currentNode.type !== "mission"
+    !isMissionFlowNode(currentNode)
       ? ""
       : currentNode.puzzleType === "tile-swap" && missionPuzzleSolved
         ? arScanDone
@@ -1757,6 +1811,8 @@ function App() {
       inputCode,
       teamName,
       flowIndex,
+      flowNodeId: currentNode.id,
+      flowSaveVersion: FLOW_SAVE_VERSION,
       openedHints,
       hintCount,
       pieces,
@@ -1779,6 +1835,7 @@ function App() {
     clearTimeSeconds,
     missionStartTime,
     missionTimes,
+    currentNode.id,
   ]);
 
   useEffect(() => {
@@ -1977,8 +2034,25 @@ function App() {
     goNextFlow();
   };
 
+  const completeCurrentInterludeMission = () => {
+    if (currentNode.type !== "interludeMission") return;
+
+    setAnswer("");
+    setMessage("");
+    goNextFlow();
+  };
+
+  const completeCurrentMissionNode = () => {
+    if (currentNode.type === "interludeMission") {
+      completeCurrentInterludeMission();
+      return;
+    }
+
+    completeCurrentMission();
+  };
+
   const submitMissionAnswer = () => {
-    if (currentNode.type !== "mission") return;
+    if (!isMissionFlowNode(currentNode)) return;
 
     const isTemporaryMission = currentNode.answer?.startsWith("TEMP");
 
@@ -2019,7 +2093,7 @@ function App() {
       }
     }
 
-    completeCurrentMission();
+    completeCurrentMissionNode();
   };
 
   const renderMissionAnswerInput = () => {
@@ -2424,7 +2498,7 @@ function App() {
           </>
         )}
 
-        {currentNode.type === "mission" && (
+        {isMissionFlowNode(currentNode) && (
           <>
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
@@ -2440,7 +2514,7 @@ function App() {
                 )}
                 <div>
                   <dt>{isLocationDiscoveryMission ? "탐색 단서" : "현장 확인"}</dt>
-                  <dd>{currentMissionAction}</dd>
+                  <dd>{currentNode.goalSummary || currentMissionAction}</dd>
                 </div>
               </dl>
             </section>
@@ -2733,7 +2807,7 @@ function App() {
                 <button
                   type="button"
                   className="tempSkipAction"
-                  onClick={completeCurrentMission}
+                  onClick={completeCurrentMissionNode}
                 >
                   [임시] 다음 단계로
                 </button>

@@ -920,27 +920,19 @@ function getMissionAnswerInputConfig(mission) {
   };
 }
 
-function getCouponExpireDateText() {
-  const today = new Date();
+function addCalendarMonth(date) {
+  const source = new Date(date);
+  if (Number.isNaN(source.getTime())) return null;
+  const targetYear = source.getFullYear();
+  const targetMonth = source.getMonth() + 1;
+  const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
+  return new Date(targetYear, targetMonth, Math.min(source.getDate(), lastDayOfTargetMonth));
+}
 
-  const targetYear = today.getFullYear();
-  const targetMonth = today.getMonth() + 1;
-
-  const lastDayOfTargetMonth = new Date(
-    targetYear,
-    targetMonth + 1,
-    0,
-  ).getDate();
-
-  const expireDate = new Date(
-    targetYear,
-    targetMonth,
-    Math.min(today.getDate(), lastDayOfTargetMonth),
-  );
-
-  return `${expireDate.getFullYear()}년 ${
-    expireDate.getMonth() + 1
-  }월 ${expireDate.getDate()}일`;
+function getCouponExpireDateText(issuedAt) {
+  const expireDate = addCalendarMonth(issuedAt);
+  if (!expireDate) return "클리어 시각 확인 필요";
+  return expireDate.getFullYear() + "년 " + (expireDate.getMonth() + 1) + "월 " + expireDate.getDate() + "일";
 }
 
 function sanitizeScreen(screen) {
@@ -1032,6 +1024,7 @@ function loadInitialGameState() {
     message: "",
     startTime: null,
     clearTimeSeconds: null,
+    completionTimestamp: null,
     missionStartTime: null,
     missionTimes: {},
     puzzleProgressByNode: {},
@@ -1064,6 +1057,7 @@ function loadInitialGameState() {
       pieces: migrateSavedPieces(data.pieces),
       startTime: Number.isFinite(data.startTime) ? data.startTime : null,
       clearTimeSeconds: Number.isFinite(data.clearTimeSeconds) ? data.clearTimeSeconds : null,
+      completionTimestamp: Number.isFinite(data.completionTimestamp) ? data.completionTimestamp : null,
       missionStartTime: Number.isFinite(data.missionStartTime) ? data.missionStartTime : null,
       missionTimes: sanitizeMissionTimes(data.missionTimes),
       puzzleProgressByNode: sanitizePuzzleProgressByNode(data.puzzleProgressByNode),
@@ -1870,6 +1864,7 @@ function App() {
   const [clearTimeSeconds, setClearTimeSeconds] = useState(
     initialGameState.clearTimeSeconds,
   );
+  const [completionTimestamp, setCompletionTimestamp] = useState(initialGameState.completionTimestamp);
   const [now, setNow] = useState(() => Date.now());
   const [missionStartTime, setMissionStartTime] = useState(
     initialGameState.missionStartTime,
@@ -1991,6 +1986,7 @@ function App() {
       pieces,
       startTime,
       clearTimeSeconds,
+      completionTimestamp,
       missionStartTime,
       missionTimes,
       puzzleProgressByNode,
@@ -2011,6 +2007,7 @@ function App() {
     pieces,
     startTime,
     clearTimeSeconds,
+    completionTimestamp,
     missionStartTime,
     missionTimes,
     puzzleProgressByNode,
@@ -2104,14 +2101,17 @@ function App() {
   };
 
   const finishInvestigation = () => {
+    const endTime = Date.now();
+
     if (!clearTimeSeconds) {
-      const endTime = Date.now();
       const totalSeconds = startTime
         ? Math.max(1, Math.floor((endTime - startTime) / 1000))
         : 0;
 
       setClearTimeSeconds(totalSeconds);
     }
+
+    if (!completionTimestamp) setCompletionTimestamp(endTime);
 
     setMessage("");
     setScreen("clear");
@@ -2354,6 +2354,7 @@ function App() {
     setMessage("");
     setStartTime(null);
     setClearTimeSeconds(null);
+    setCompletionTimestamp(null);
     setMissionStartTime(null);
     setMissionTimes({});
     setRankingSaveStatus("idle");
@@ -3241,12 +3242,12 @@ function App() {
           <p className="sectionLabel">Reward</p>
           <h2>보상 안내</h2>
           <p>
-            다음 화면을 제시하면 클리어 인증과 연계 혜택을 받을 수 있습니다.
+            메리골드에서 사용할 수 있는 10% 할인 쿠폰이 지급되었습니다.
           </p>
         </section>
 
         <button className="rewardAction" onClick={() => setScreen("coupon")}>
-          메리골드 쿠폰 확인하기
+          10% 할인 쿠폰 확인하기
         </button>
 
         <section className="truthDocument">
@@ -3288,7 +3289,8 @@ function App() {
   }
 
   if (screen === "coupon") {
-    const couponExpireDateText = getCouponExpireDateText();
+    const issuedAt = completionTimestamp || (startTime && clearTimeSeconds ? startTime + clearTimeSeconds * 1000 : null);
+    const couponExpireDateText = getCouponExpireDateText(issuedAt);
 
     return (
       <main className="page centerPage rewardPage">
@@ -3297,7 +3299,7 @@ function App() {
 
         <section className="card couponCard" aria-label="메리골드 클리어 쿠폰">
           <p className="sectionLabel">Reward Coupon</p>
-          <h2>공방거리 탐정단 특별 쿠폰</h2>
+          <h2>메리골드 10% 할인 쿠폰</h2>
 
           <div className="couponStampBox">
             <span>MERIGOLD</span>
@@ -3305,8 +3307,8 @@ function App() {
           </div>
 
           <p className="couponIntro">
-            이 화면을 메리골드 매장에 제시하면, 현장에서 사용 가능한 클리어
-            혜택을 받을 수 있습니다.
+            메리골드에서 사용할 수 있는 10% 할인 쿠폰입니다.
+            직원에게 이 쿠폰 화면을 보여주세요.
           </p>
 
           <dl className="couponInfoBox">
@@ -3316,7 +3318,7 @@ function App() {
             </div>
             <div>
               <dt>사용 방법</dt>
-              <dd>이 화면을 매장에 제시</dd>
+              <dd>직원에게 이 쿠폰 화면을 보여주세요.</dd>
             </div>
             <div>
               <dt>사용 기한</dt>

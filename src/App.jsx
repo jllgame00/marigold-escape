@@ -394,7 +394,8 @@ const storyFlow = [
   {
     id: "interlude-pine-branches",
     type: "interludeMission",
-    chapter: "현장 관찰",
+    chapter: "보조 현장 관찰",
+    interludeDescription: "7개 단서 수집과 별도로 진행하는 현장 관찰입니다.",
     title: "소나무 나뭇가지 수",
     location: "우물을 등진 정면의 벽화",
     goalSummary: "벽화 속 소나무 관찰 → 나뭇가지 수 세기 → 숫자 입력",
@@ -715,12 +716,12 @@ const workshopRecommendations = {
     recommendedCrafts: ["팔찌 만들기", "칠보 장식 체험", "약속 증표 만들기"],
   },
   5: {
-    title: "종이꽃 해석형",
-    workshop: "종이노리 / 종이 공방",
-    statName: "종이 단서 해석",
+    title: "현장 포착형",
+    workshop: "행궁동 현장 탐방",
+    statName: "현장 관찰",
     description:
-      "종이의 접힘과 숨은 궤적을 빠르게 비교했습니다. 서찰, 한지, 종이꽃처럼 이야기와 형태가 함께 담긴 공예에 잘 어울립니다.",
-    recommendedCrafts: ["종이꽃 만들기", "한지 엽서 만들기", "서찰 카드 제작"],
+      "주변의 특징을 빠르게 파악하고 목표 장소를 정확하게 찾아냈습니다. 현장 단서를 눈여겨보며 탐색하는 데 강한 타입입니다.",
+    recommendedCrafts: ["행궁동 골목 산책", "공방거리 현장 탐방", "사진 속 장소 찾기"],
   },
 };
 
@@ -1448,15 +1449,32 @@ function compareImageSignatures(targetSignature, cameraSignature) {
   return edgeScore * 0.7 + histScore * 0.3;
 }
 
-function loadTargetImage(src) {
+function loadTargetImage(src, timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
     const image = new Image();
+    let settled = false;
+    const timeoutId = setTimeout(() => {
+      settled = true;
+      const error = new Error("기준 이미지를 불러오는 시간이 초과되었습니다.");
+      error.code = "REFERENCE_TIMEOUT";
+      reject(error);
+    }, timeoutMs);
+
     image.crossOrigin = "anonymous";
-
-    image.onload = () => resolve(image);
-    image.onerror = () =>
-      reject(new Error("기준 이미지를 불러오지 못했습니다."));
-
+    image.onload = () => {
+      if (settled) return;
+      clearTimeout(timeoutId);
+      settled = true;
+      resolve(image);
+    };
+    image.onerror = () => {
+      if (settled) return;
+      clearTimeout(timeoutId);
+      settled = true;
+      const error = new Error("기준 이미지를 불러오지 못했습니다.");
+      error.code = "REFERENCE_LOAD";
+      reject(error);
+    };
     image.src = src;
   });
 }
@@ -1478,6 +1496,8 @@ function ARScanGate({
   const [technicalError, setTechnicalError] = useState("");
   const [scanMessage, setScanMessage] = useState("");
   const [isScanning, setIsScanning] = useState(false);
+  const [isCameraStarted, setIsCameraStarted] = useState(false);
+  const [isStartingCamera, setIsStartingCamera] = useState(false);
   const [lastScore, setLastScore] = useState(null);
   const [failCount, setFailCount] = useState(0);
 
@@ -1485,44 +1505,51 @@ function ARScanGate({
     failCount >= maxFailCount || !!cameraError || !!technicalError;
 
   useEffect(() => {
-    const startCamera = async () => {
-      try {
-        if (!navigator.mediaDevices?.getUserMedia) {
-          setCameraError("이 브라우저에서는 카메라를 사용할 수 없습니다.");
-          return;
-        }
-
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            facingMode: { ideal: "environment" },
-          },
-          audio: false,
-        });
-
-        streamRef.current = stream;
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          await videoRef.current.play();
-        }
-      } catch {
-        setCameraError(
-          `카메라 권한을 허용해야 ${targetName} 확인을 진행할 수 있습니다.`,
-        );
-      }
-    };
-
-    startCamera();
-
     return () => {
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach((track) => track.stop());
-      }
+      streamRef.current?.getTracks().forEach((track) => track.stop());
     };
-  }, [targetName]);
+  }, []);
+
+  const startCamera = async () => {
+    if (isCameraStarted || isStartingCamera) return;
+
+    setIsStartingCamera(true);
+    setCameraError("");
+    setTechnicalError("");
+
+    try {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        const error = new Error("카메라를 사용할 수 없습니다.");
+        error.name = "NotSupportedError";
+        throw error;
+      }
+
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: "environment" } },
+        audio: false,
+      });
+      streamRef.current = stream;
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setIsCameraStarted(true);
+    } catch (error) {
+      if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
+        setCameraError("카메라 권한이 거부되었습니다. 브라우저 권한을 허용하거나 수동 확인으로 계속하세요.");
+      } else if (error?.name === "NotFoundError" || error?.name === "NotReadableError") {
+        setCameraError("사용할 카메라를 찾거나 시작하지 못했습니다. 다른 카메라를 닫고 다시 시도하거나 수동 확인으로 계속하세요.");
+      } else {
+        setTechnicalError("카메라를 시작하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.");
+      }
+    } finally {
+      setIsStartingCamera(false);
+    }
+  };
 
   const handleScan = async () => {
-    if (isScanning || !videoRef.current) return;
+    if (isScanning || !isCameraStarted || !videoRef.current) return;
 
     setIsScanning(true);
     setScanMessage("");
@@ -1532,10 +1559,9 @@ function ARScanGate({
       const video = videoRef.current;
 
       if (!video.videoWidth || !video.videoHeight) {
-        setTechnicalError(
-          "카메라 화면을 준비하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.",
-        );
-        return;
+        const error = new Error("카메라 화면을 준비하지 못했습니다.");
+        error.code = "COMPARISON";
+        throw error;
       }
 
       if (!targetSignatureRef.current) {
@@ -1560,7 +1586,7 @@ function ARScanGate({
 
       const cropCanvas = document.createElement("canvas");
       cropCanvas.width = 320;
-      cropCanvas.height = 203;
+      cropCanvas.height = 271;
 
       const cropCtx = cropCanvas.getContext("2d", {
         willReadFrequently: true,
@@ -1600,15 +1626,15 @@ function ARScanGate({
       const nextFailCount = failCount + 1;
       setFailCount(nextFailCount);
 
-      setScanMessage(
-        `간판이 아직 충분히 맞지 않았습니다. 현재 유사도 ${Math.round(
-          score * 100,
-        )}% / 필요 유사도 ${Math.round(matchThreshold * 100)}%`,
-      );
-    } catch {
-      setTechnicalError(
-        `${targetName} 판정에 필요한 정보를 준비하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.`,
-      );
+      setScanMessage("현장 모습이 기준 사진과 충분히 일치하지 않습니다. 거리와 각도를 조정한 뒤 다시 확인해보세요.");
+    } catch (error) {
+      if (error?.code === "REFERENCE_TIMEOUT") {
+        setTechnicalError("기준 사진을 불러오는 데 시간이 걸리고 있습니다. 다시 시도하거나 수동 확인으로 계속하세요.");
+      } else if (error?.code === "REFERENCE_LOAD") {
+        setTechnicalError("기준 사진을 불러오지 못했습니다. 다시 시도하거나 수동 확인으로 계속하세요.");
+      } else {
+        setTechnicalError("현장 화면을 비교하는 중 오류가 발생했습니다. 다시 시도하거나 수동 확인으로 계속하세요.");
+      }
     } finally {
       setIsScanning(false);
     }
@@ -1619,6 +1645,17 @@ function ARScanGate({
       <h3>{targetName} AR 확인</h3>
 
       <p>{guideDescription}</p>
+
+      {!isCameraStarted && !cameraError && !technicalError && (
+        <button
+          className="arStartButton"
+          type="button"
+          onClick={startCamera}
+          disabled={isStartingCamera}
+        >
+          {isStartingCamera ? "카메라 준비 중..." : "카메라로 현장 확인하기"}
+        </button>
+      )}
 
       <div className="arCameraFrame">
         <video ref={videoRef} className="arVideo" autoPlay playsInline muted />
@@ -1631,7 +1668,10 @@ function ARScanGate({
           />
         )}
 
-        <div className="arFrameGuide" />
+        <div className="arFrameGuide" aria-hidden="true" />
+        {!isCameraStarted && (
+          <p className="arCameraPlaceholder">위 버튼을 누르면 카메라 화면이 시작됩니다.</p>
+        )}
       </div>
 
       {lastScore !== null && (
@@ -1655,14 +1695,15 @@ function ARScanGate({
       {scanMessage && <p className="message">{scanMessage}</p>}
 
       <button
+        type="button"
         onClick={handleScan}
-        disabled={isScanning || !targetImage || !!cameraError}
+        disabled={isScanning || !targetImage || !!cameraError || !isCameraStarted}
       >
         {isScanning
-          ? `${targetName}을 판정하는 중...`
+          ? "현재 화면을 판정하는 중..."
           : technicalError
-            ? `${targetName} 판정 다시 시도하기`
-            : `${targetName} 판정하기`}
+            ? "현재 화면 판정 다시 시도하기"
+            : "현재 화면 판정하기"}
       </button>
 
       {fallbackVisible && (
@@ -1711,6 +1752,7 @@ function App() {
   const [arScanDone, setArScanDone] = useState(false);
   const [puzzleProgressByNode, setPuzzleProgressByNode] = useState({});
   const [completionNotice, setCompletionNotice] = useState(null);
+  const [interludeNotice, setInterludeNotice] = useState(null);
 
   const previousNavigationRef = useRef(null);
   const currentNode = storyFlow[flowIndex] || storyFlow[0];
@@ -1874,6 +1916,7 @@ function App() {
     setMessage("");
     setAnswer("");
     setCompletionNotice(null);
+    setInterludeNotice(null);
     setMissionPuzzleSolved(false);
     setArScanDone(false);
     setPuzzleProgressByNode({});
@@ -2000,6 +2043,8 @@ function App() {
   const completeCurrentInterludeMission = () => {
     if (currentNode.type !== "interludeMission") return;
 
+    const nextNode = storyFlow[Math.min(flowIndex + 1, storyFlow.length - 1)];
+    setInterludeNotice({ targetNodeId: nextNode?.id });
     setAnswer("");
     setMessage("");
     goNextFlow();
@@ -2150,6 +2195,17 @@ function App() {
           단서 {completionNotice.completedMissionCount} / {missionNodes.length} 획득
         </strong>
         <span>{completionNotice.piece}</span>
+      </section>
+    );
+  };
+
+  const renderInterludeNotice = () => {
+    if (interludeNotice?.targetNodeId !== currentNode.id) return null;
+
+    return (
+      <section className="interludeCompletionNotice" role="status" aria-live="polite">
+        <p>보조 관찰 완료</p>
+        <span>벽화 관찰 완료 · 네 번째 기록을 이어갑니다.</span>
       </section>
     );
   };
@@ -2411,6 +2467,7 @@ function App() {
             <h1>{currentNode.title}</h1>
 
             {renderCompletionNotice()}
+            {renderInterludeNotice()}
 
             <section className="storyDocument">
               {currentNode.location && (
@@ -2465,6 +2522,10 @@ function App() {
           <>
             <p className="eyebrow">{currentNode.chapter}</p>
             <h1>{currentNode.title}</h1>
+
+            {currentNode.type === "interludeMission" && (
+              <p className="interludeDescription">{currentNode.interludeDescription}</p>
+            )}
 
             <section className="missionGoal" aria-label="현재 할 일">
               <p className="sectionLabel">Current Goal</p>

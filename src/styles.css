@@ -593,8 +593,8 @@ input::placeholder {
 
 .stitchPoint {
   position: absolute;
-  width: clamp(20px, 5.5vw, 24px);
-  height: clamp(20px, 5.5vw, 24px);
+  width: clamp(32px, 8vw, 36px);
+  height: clamp(32px, 8vw, 36px);
   min-height: 0;
   padding: 0;
   border: 0;
@@ -609,7 +609,7 @@ input::placeholder {
 .stitchPoint::before {
   content: "";
   position: absolute;
-  inset: 2px;
+  inset: 4px;
   border: 2px solid #4f2b2f;
   border-radius: inherit;
   background: #fff7e8;
@@ -695,6 +695,21 @@ input::placeholder {
   margin-top: 18px;
 }
 
+.arStartButton {
+  width: 100%;
+  margin: 12px 0 16px;
+}
+
+.arCameraPlaceholder {
+  position: absolute;
+  inset: 42% 12% auto;
+  margin: 0;
+  color: #fff7e8;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
 .arCameraFrame {
   position: relative;
   width: 100%;
@@ -717,14 +732,13 @@ input::placeholder {
 
 .arOverlayImage {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 78%;
-  max-height: 70%;
+  top: 24%;
+  left: 9%;
+  width: 82%;
+  height: 52%;
   object-fit: contain;
   opacity: 0.42;
   filter: sepia(0.15);
-  transform: translate(-50%, -50%);
   pointer-events: none;
 }
 
@@ -2083,6 +2097,32 @@ body {
   color: var(--paper);
   font-size: 13px;
   font-weight: 800;
+}
+
+.interludeDescription {
+  margin: -4px 0 16px;
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.interludeCompletionNotice {
+  display: grid;
+  gap: 4px;
+  margin: 14px 0 18px;
+  padding: 12px 14px;
+  border-left: 3px solid rgba(151, 108, 54, 0.5);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
+
+.interludeCompletionNotice p {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.interludeCompletionNotice span {
+  line-height: 1.5;
 }
 
 .completionNotice {

@@ -1,7 +1,7 @@
 export const gameInfo = {
   title: "왕비 후보의 서찰",
   subtitle: "궁중 공방 미스터리 야외 방탈출",
-  teaserVideo: "/teaser.mp4",
+  teaserVideo: "/teaser-optimized.mp4",
 };
 
 export const storyFlow = [
@@ -102,7 +102,7 @@ export const storyFlow = [
       "정답은 네 자리 숫자다.",
     ],
     answer: "1245",
-    image: "/mission/mission3-nanyeong-crop.png",
+    image: "/mission/mission3-nanyeong-crop.webp",
   },
 
   {

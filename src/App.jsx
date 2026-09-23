@@ -54,7 +54,7 @@ const storyFlow = [
     type: "teaser",
     title: "왕비 후보의 서찰",
     subtitle: "궁중 공방 미스터리 야외 방탈출",
-    videoSrc: "/teaser.mp4",
+    videoSrc: "/teaser-optimized.mp4",
     posterSrc: "/teaser-poster.png",
     description:
       "혼례를 앞둔 궁궐. 왕비 후보의 물건들이 하나둘 사라지고, 이름 없는 서찰 하나가 당신에게 도착한다.",
@@ -105,55 +105,55 @@ const storyFlow = [
     puzzlePieces: [
       {
         id: "piece-01",
-        image: "/mission/mission1-pottery/piece-01.png",
+        image: "/mission/mission1-pottery/piece-01.webp",
         correctIndex: 0,
         alt: "깨진 향 도자기 조각 1",
       },
       {
         id: "piece-02",
-        image: "/mission/mission1-pottery/piece-02.png",
+        image: "/mission/mission1-pottery/piece-02.webp",
         correctIndex: 1,
         alt: "깨진 향 도자기 조각 2",
       },
       {
         id: "piece-03",
-        image: "/mission/mission1-pottery/piece-03.png",
+        image: "/mission/mission1-pottery/piece-03.webp",
         correctIndex: 2,
         alt: "깨진 향 도자기 조각 3",
       },
       {
         id: "piece-04",
-        image: "/mission/mission1-pottery/piece-04.png",
+        image: "/mission/mission1-pottery/piece-04.webp",
         correctIndex: 3,
         alt: "깨진 향 도자기 조각 4",
       },
       {
         id: "piece-05",
-        image: "/mission/mission1-pottery/piece-05.png",
+        image: "/mission/mission1-pottery/piece-05.webp",
         correctIndex: 4,
         alt: "깨진 향 도자기 조각 5",
       },
       {
         id: "piece-06",
-        image: "/mission/mission1-pottery/piece-06.png",
+        image: "/mission/mission1-pottery/piece-06.webp",
         correctIndex: 5,
         alt: "깨진 향 도자기 조각 6",
       },
       {
         id: "piece-07",
-        image: "/mission/mission1-pottery/piece-07.png",
+        image: "/mission/mission1-pottery/piece-07.webp",
         correctIndex: 6,
         alt: "깨진 향 도자기 조각 7",
       },
       {
         id: "piece-08",
-        image: "/mission/mission1-pottery/piece-08.png",
+        image: "/mission/mission1-pottery/piece-08.webp",
         correctIndex: 7,
         alt: "깨진 향 도자기 조각 8",
       },
       {
         id: "piece-09",
-        image: "/mission/mission1-pottery/piece-09.png",
+        image: "/mission/mission1-pottery/piece-09.webp",
         correctIndex: 8,
         alt: "깨진 향 도자기 조각 9",
       },
@@ -354,7 +354,7 @@ const storyFlow = [
     title: "불을 지나 남은 색",
     location: "나녕공방",
     piece: "그을린 팔찌 조각",
-    image: "/mission/mission3-nanyeong-crop.png",
+    image: "/mission/mission3-nanyeong-crop.webp",
     intro:
       "전하가 연이에게 전하려 했던 팔찌는 간택 직전 사라졌다. 다시 발견된 팔찌 조각은 검게 그을려 있었지만, 주변에는 아직 팔찌의 원래 배열을 알려주는 흔적이 남아 있었다.",
     instruction:
@@ -504,7 +504,7 @@ const storyFlow = [
     intro: "현장을 확인해 사진 인증을 진행한다.",
     instruction: "팝업현장 주변 50m 내에서 '사랑 안의 행궁'을 찾아 사진 찍으세요.",
     puzzleType: "ar-scan",
-    arTargetImage: "/mission/mission5-love-haenggung-reference.jpg",
+    arTargetImage: "/mission/mission5-love-haenggung-reference-optimized.jpg",
     arScanTargetName: "현장 사진",
     arScanGuideDescription:
       "반투명 기준 이미지와 실제 현장 사진이 최대한 겹치도록 카메라를 맞춘 뒤 판정하세요.",
@@ -590,7 +590,7 @@ const storyFlow = [
     type: "story",
     chapter: "일곱 번째 기록",
     title: "오라버니",
-    video: "/story7.mp4",
+    video: "/story7-optimized.mp4",
     videoPoster: "/story7-poster.png",
     paragraphs: [
       "서화가 청휘를 향해 떨리는 목소리로 말했다.",
@@ -2439,6 +2439,7 @@ function App() {
                 poster={currentNode.posterSrc}
                 controls
                 playsInline
+                preload="metadata"
               >
                 사용 중인 브라우저에서 영상을 재생할 수 없습니다.
               </video>

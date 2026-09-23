@@ -25,6 +25,120 @@ const TEMP_ALLOW_PUZZLE_SKIP =
   import.meta.env.DEV || import.meta.env.VITE_ENABLE_PUZZLE_SKIP === "true";
 const EMPTY_STITCH_CONNECTIONS = [];
 
+let storageUnavailableAtLoad = false;
+
+function markStorageUnavailable() {
+  storageUnavailableAtLoad = true;
+}
+
+function safeGetItem(key) {
+  try {
+    return window.localStorage?.getItem(key) ?? null;
+  } catch {
+    markStorageUnavailable();
+    return null;
+  }
+}
+
+function safeSetItem(key, value, onFailure) {
+  try {
+    window.localStorage?.setItem(key, value);
+    return true;
+  } catch {
+    markStorageUnavailable();
+    onFailure?.();
+    return false;
+  }
+}
+
+function safeRemoveItem(key) {
+  try {
+    window.localStorage?.removeItem(key);
+  } catch {
+    markStorageUnavailable();
+  }
+}
+
+function isRecord(value) {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function sanitizeAnswerDrafts(value) {
+  if (!isRecord(value)) return {};
+  const validNodeIds = new Set(storyFlow.map((node) => node.id));
+  return Object.entries(value).reduce((drafts, [nodeId, draft]) => {
+    if (validNodeIds.has(nodeId) && typeof draft === "string") {
+      drafts[nodeId] = draft.slice(0, 200);
+    }
+    return drafts;
+  }, {});
+}
+
+function sanitizeMissionTimes(value) {
+  if (!isRecord(value)) return {};
+  return Object.entries(value).reduce((times, [missionId, seconds]) => {
+    const numericSeconds = Number(seconds);
+    if (/^\d+$/.test(missionId) && Number.isFinite(numericSeconds) && numericSeconds >= 0 && numericSeconds <= 86400) {
+      times[missionId] = numericSeconds;
+    }
+    return times;
+  }, {});
+}
+
+function sanitizePuzzleProgressByNode(value) {
+  if (!isRecord(value)) return {};
+  const sanitized = {};
+  storyFlow.forEach((node) => {
+    const rawNode = value[node.id];
+    if (!isRecord(rawNode)) return;
+    if (node.puzzleType === "tile-swap" && isRecord(rawNode.tile)) {
+      const expectedIds = node.puzzlePieces.map((piece) => piece.id);
+      const rawOrder = rawNode.tile.order;
+      const validOrder = Array.isArray(rawOrder) && rawOrder.length === expectedIds.length && new Set(rawOrder).size === expectedIds.length && rawOrder.every((id) => expectedIds.includes(id));
+      if (validOrder) {
+        const isSolved = rawOrder.every((id, index) => id === expectedIds[index]);
+        const selectedIndex = Number.isInteger(rawNode.tile.selectedIndex) && rawNode.tile.selectedIndex >= 0 && rawNode.tile.selectedIndex < expectedIds.length ? rawNode.tile.selectedIndex : null;
+        sanitized[node.id] = {
+          ...sanitized[node.id],
+          tile: { order: [...rawOrder], selectedIndex: isSolved ? null : selectedIndex, isSolved },
+        };
+      }
+    }
+    if (node.puzzleType === "stitch-connect" && isRecord(rawNode.stitch)) {
+      const pointIds = new Set(node.stitchPoints.map((point) => point.id));
+      const correctKeys = new Set(node.stitchPairs.map(([a, b]) => getStitchPairKey(a, b)));
+      const seenKeys = new Set();
+      const connections = Array.isArray(rawNode.stitch.connections) ? rawNode.stitch.connections.reduce((valid, pair) => {
+        if (!Array.isArray(pair) || pair.length !== 2 || !pointIds.has(pair[0]) || !pointIds.has(pair[1])) return valid;
+        const key = getStitchPairKey(pair[0], pair[1]);
+        if (!correctKeys.has(key) || seenKeys.has(key)) return valid;
+        seenKeys.add(key);
+        valid.push([pair[0], pair[1]]);
+        return valid;
+      }, []) : [];
+      const connectedIds = new Set(connections.flat());
+      const selectedPointId = pointIds.has(rawNode.stitch.selectedPointId) && !connectedIds.has(rawNode.stitch.selectedPointId) ? rawNode.stitch.selectedPointId : null;
+      const isSolved = connections.length === node.stitchPairs.length;
+      sanitized[node.id] = {
+        ...sanitized[node.id],
+        stitch: { connections, selectedPointId: isSolved ? null : selectedPointId, isSolved },
+      };
+    }
+  });
+  return sanitized;
+}
+
+function sanitizeCompletedArNodes(value) {
+  if (!Array.isArray(value)) return [];
+  const validArNodes = new Set(storyFlow.filter((node) => node.puzzleType === "ar-scan" || node.arTargetImage).map((node) => node.id));
+  return [...new Set(value.filter((nodeId) => validArNodes.has(nodeId)))];
+}
+
+function getPuzzleSolvedForNode(node, progressByNode) {
+  const progress = progressByNode?.[node?.id];
+  return Boolean(progress?.tile?.isSolved || progress?.stitch?.isSolved);
+}
+
 const rankingSaveMessages = {
   idle: "",
   saving: "랭킹 저장 중...",
@@ -892,10 +1006,10 @@ function getSavedFlowIndex(data) {
   return migrateFlowIndexFromLegacyVersion(data.flowIndex);
 }
 
-function migrateSavedPieces(pieces, flowSaveVersion) {
-  if (flowSaveVersion === FLOW_SAVE_VERSION) return pieces;
-
-  return pieces.map((piece) => legacyPieceLabelMigrations[piece] || piece);
+function migrateSavedPieces(pieces) {
+  if (!Array.isArray(pieces)) return [];
+  const migratedPieces = pieces.filter((piece) => typeof piece === "string").map((piece) => legacyPieceLabelMigrations[piece] || piece);
+  return migratedPieces;
 }
 
 function loadInitialGameState() {
@@ -913,38 +1027,44 @@ function loadInitialGameState() {
     clearTimeSeconds: null,
     missionStartTime: null,
     missionTimes: {},
+    puzzleProgressByNode: {},
+    answerDraftsByNode: {},
+    completedArNodes: [],
     rankingSaveStatus: "idle",
   };
 
   if (import.meta.env.DEV) {
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem(OLD_SAVE_KEY);
+    safeRemoveItem(SAVE_KEY);
+    safeRemoveItem(OLD_SAVE_KEY);
     return defaults;
   }
 
-  const saved = localStorage.getItem(SAVE_KEY);
-
+  const saved = safeGetItem(SAVE_KEY);
   if (!saved) return defaults;
 
   try {
     const data = JSON.parse(saved);
+    if (!isRecord(data)) throw new Error("Invalid save shape");
 
     return {
       ...defaults,
       screen: sanitizeScreen(data.screen),
-      inputCode: data.inputCode || "",
-      teamName: data.teamName || "",
+      inputCode: typeof data.inputCode === "string" ? data.inputCode.slice(0, 40) : "",
+      teamName: typeof data.teamName === "string" ? data.teamName.slice(0, 80) : "",
       flowIndex: getSavedFlowIndex(data),
-      openedHints: data.openedHints || [],
-      hintCount: data.hintCount || 0,
-      pieces: migrateSavedPieces(data.pieces || [], data.flowSaveVersion),
-      startTime: data.startTime || null,
-      clearTimeSeconds: data.clearTimeSeconds || null,
-      missionStartTime: data.missionStartTime || null,
-      missionTimes: data.missionTimes || {},
+      openedHints: Array.isArray(data.openedHints) ? data.openedHints.filter((hint) => typeof hint === "string") : [],
+      hintCount: Number.isInteger(data.hintCount) && data.hintCount >= 0 ? data.hintCount : 0,
+      pieces: migrateSavedPieces(data.pieces),
+      startTime: Number.isFinite(data.startTime) ? data.startTime : null,
+      clearTimeSeconds: Number.isFinite(data.clearTimeSeconds) ? data.clearTimeSeconds : null,
+      missionStartTime: Number.isFinite(data.missionStartTime) ? data.missionStartTime : null,
+      missionTimes: sanitizeMissionTimes(data.missionTimes),
+      puzzleProgressByNode: sanitizePuzzleProgressByNode(data.puzzleProgressByNode),
+      answerDraftsByNode: sanitizeAnswerDrafts(data.answerDraftsByNode),
+      completedArNodes: sanitizeCompletedArNodes(data.completedArNodes),
     };
   } catch {
-    localStorage.removeItem(SAVE_KEY);
+    safeRemoveItem(SAVE_KEY);
     return defaults;
   }
 }
@@ -1727,11 +1847,14 @@ function ARScanGate({
 
 function App() {
   const [initialGameState] = useState(loadInitialGameState);
+  const initialFlowNode = storyFlow[initialGameState.flowIndex] || storyFlow[0];
   const [screen, setScreen] = useState(initialGameState.screen);
   const [inputCode, setInputCode] = useState(initialGameState.inputCode);
   const [teamName, setTeamName] = useState(initialGameState.teamName);
   const [flowIndex, setFlowIndex] = useState(initialGameState.flowIndex);
-  const [answer, setAnswer] = useState(initialGameState.answer);
+  const [answer, setAnswer] = useState(
+    initialGameState.answerDraftsByNode?.[initialFlowNode.id] || initialGameState.answer,
+  );
   const [openedHints, setOpenedHints] = useState(initialGameState.openedHints);
   const [hintCount, setHintCount] = useState(initialGameState.hintCount);
   const [pieces, setPieces] = useState(initialGameState.pieces);
@@ -1748,14 +1871,52 @@ function App() {
   const [rankingSaveStatus, setRankingSaveStatus] = useState(
     initialGameState.rankingSaveStatus,
   );
-  const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(false);
-  const [arScanDone, setArScanDone] = useState(false);
-  const [puzzleProgressByNode, setPuzzleProgressByNode] = useState({});
+  const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(() =>
+    getPuzzleSolvedForNode(initialFlowNode, initialGameState.puzzleProgressByNode),
+  );
+  const [arScanDone, setArScanDone] = useState(() =>
+    initialGameState.completedArNodes.includes(initialFlowNode.id),
+  );
+  const [puzzleProgressByNode, setPuzzleProgressByNode] = useState(
+    initialGameState.puzzleProgressByNode,
+  );
+  const [answerDraftsByNode, setAnswerDraftsByNode] = useState(
+    initialGameState.answerDraftsByNode,
+  );
+  const [completedArNodes, setCompletedArNodes] = useState(
+    initialGameState.completedArNodes,
+  );
+  const [storageWarningVisible, setStorageWarningVisible] = useState(
+    storageUnavailableAtLoad,
+  );
   const [completionNotice, setCompletionNotice] = useState(null);
   const [interludeNotice, setInterludeNotice] = useState(null);
 
   const previousNavigationRef = useRef(null);
   const currentNode = storyFlow[flowIndex] || storyFlow[0];
+  const setCurrentAnswer = (value) => {
+    const nextAnswer = String(value || "").slice(0, 200);
+    setAnswer(nextAnswer);
+    setAnswerDraftsByNode((prev) => {
+      if (!nextAnswer) {
+        if (!(currentNode.id in prev)) return prev;
+        const next = { ...prev };
+        delete next[currentNode.id];
+        return next;
+      }
+      if (prev[currentNode.id] === nextAnswer) return prev;
+      return { ...prev, [currentNode.id]: nextAnswer };
+    });
+  };
+
+  const clearCurrentAnswerDraft = () => {
+    setAnswerDraftsByNode((prev) => {
+      if (!(currentNode.id in prev)) return prev;
+      const next = { ...prev };
+      delete next[currentNode.id];
+      return next;
+    });
+  };
 
   useLayoutEffect(() => {
     const nextNavigation = {
@@ -1825,9 +1986,14 @@ function App() {
       clearTimeSeconds,
       missionStartTime,
       missionTimes,
+      puzzleProgressByNode,
+      answerDraftsByNode,
+      completedArNodes,
     };
 
-    localStorage.setItem(SAVE_KEY, JSON.stringify(saveData));
+    safeSetItem(SAVE_KEY, JSON.stringify(saveData), () => {
+      setStorageWarningVisible(true);
+    });
   }, [
     screen,
     inputCode,
@@ -1840,6 +2006,9 @@ function App() {
     clearTimeSeconds,
     missionStartTime,
     missionTimes,
+    puzzleProgressByNode,
+    answerDraftsByNode,
+    completedArNodes,
     currentNode.id,
   ]);
 
@@ -1920,6 +2089,9 @@ function App() {
     setMissionPuzzleSolved(false);
     setArScanDone(false);
     setPuzzleProgressByNode({});
+    setAnswerDraftsByNode({});
+    setCompletedArNodes([]);
+    setStorageWarningVisible(storageUnavailableAtLoad);
     setFlowIndex(0);
     setScreen("flow");
   };
@@ -1960,9 +2132,9 @@ function App() {
       setCompletionNotice(null);
     }
 
-    setMissionPuzzleSolved(false);
-    setArScanDone(false);
-    setAnswer("");
+    setMissionPuzzleSolved(getPuzzleSolvedForNode(nextNode, puzzleProgressByNode));
+    setArScanDone(completedArNodes.includes(nextNode?.id));
+    setAnswer(answerDraftsByNode[nextNode?.id] || "");
     setMessage("");
     setFlowIndex(nextIndex);
   };
@@ -1983,6 +2155,12 @@ function App() {
 
   const nextHintIndex =
     currentNode.hints?.findIndex((_, index) => !isHintOpen(index)) ?? -1;
+
+  const markCurrentArCompleted = () => {
+    setCompletedArNodes((prev) =>
+      prev.includes(currentNode.id) ? prev : [...prev, currentNode.id],
+    );
+  };
 
   const updateCurrentPuzzleProgress = (puzzleType, progress) => {
     setPuzzleProgressByNode((prev) => ({
@@ -2035,6 +2213,7 @@ function App() {
       setClearTimeSeconds(totalSeconds);
     }
 
+    clearCurrentAnswerDraft();
     setAnswer("");
     setMessage("");
     goNextFlow();
@@ -2045,6 +2224,7 @@ function App() {
 
     const nextNode = storyFlow[Math.min(flowIndex + 1, storyFlow.length - 1)];
     setInterludeNotice({ targetNodeId: nextNode?.id });
+    clearCurrentAnswerDraft();
     setAnswer("");
     setMessage("");
     goNextFlow();
@@ -2128,7 +2308,7 @@ function App() {
           type="text"
           value={answer}
           onChange={(event) => {
-            setAnswer(event.target.value);
+            setCurrentAnswer(event.target.value);
             if (message) setMessage("");
           }}
           placeholder={
@@ -2152,8 +2332,8 @@ function App() {
   };
 
   const resetGame = () => {
-    localStorage.removeItem(SAVE_KEY);
-    localStorage.removeItem(OLD_SAVE_KEY);
+    safeRemoveItem(SAVE_KEY);
+    safeRemoveItem(OLD_SAVE_KEY);
 
     setScreen("poster");
     setInputCode("");
@@ -2173,6 +2353,9 @@ function App() {
     setMissionPuzzleSolved(false);
     setArScanDone(false);
     setPuzzleProgressByNode({});
+    setAnswerDraftsByNode({});
+    setCompletedArNodes([]);
+    setStorageWarningVisible(storageUnavailableAtLoad);
   };
 
   const handleResetRequest = () => {
@@ -2400,6 +2583,12 @@ function App() {
   if (screen === "flow") {
     return (
       <main className="page">
+        {storageWarningVisible && (
+          <p className="storageWarning" role="status">
+            현재 브라우저에서는 진행 상황을 저장할 수 없습니다. 페이지를 닫거나 새로고침하면 진행 내용이 사라질 수 있습니다.
+          </p>
+        )}
+
         {startTime && (
           <header className="missionHeader">
             <div className="missionHeaderTop">
@@ -2625,6 +2814,7 @@ function App() {
                         matchThreshold={currentNode.arMatchThreshold || 0.55}
                         maxFailCount={currentNode.arMaxFailCount || 3}
                         onCompleted={() => {
+                          markCurrentArCompleted();
                           setArScanDone(true);
                           setMessage("");
                         }}
@@ -2647,7 +2837,7 @@ function App() {
                                 answer === choice.value ? "selected" : ""
                               }`}
                               onClick={() => {
-                                setAnswer(choice.value);
+                                setCurrentAnswer(choice.value);
                                 setMessage("");
                               }}
                             >
@@ -2677,7 +2867,10 @@ function App() {
                     maxFailCount={currentNode.arMaxFailCount || 3}
                     targetName={currentNode.arScanTargetName}
                     guideDescription={currentNode.arScanGuideDescription}
-                    onCompleted={completeCurrentMission}
+                    onCompleted={() => {
+                      markCurrentArCompleted();
+                      completeCurrentMission();
+                    }}
                   />
                 </>
               ) : currentNode.puzzleType === "stitch-connect" ? (
@@ -2702,7 +2895,7 @@ function App() {
                     }
                     onSolved={() => {
                       setMissionPuzzleSolved(true);
-                      setAnswer(currentNode.answer || "STITCH_SOLVED");
+                      setCurrentAnswer(currentNode.answer || "STITCH_SOLVED");
                       setMessage("");
                     }}
                   />

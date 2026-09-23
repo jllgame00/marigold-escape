@@ -1770,6 +1770,15 @@ body {
   margin-top: 0;
 }
 
+.storageWarning {
+  margin: 0 0 14px;
+  padding: 9px 12px;
+  border-left: 3px solid rgba(151, 108, 54, 0.5);
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.45;
+}
+
 .missionHeader {
   position: sticky;
   top: 0;

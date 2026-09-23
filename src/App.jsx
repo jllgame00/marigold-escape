@@ -503,13 +503,14 @@ const storyFlow = [
       "그러나 지금까지 드러난 정황만 놓고 본다면 가장 유력한 인물은 분명 서화였다.",
       "당신은 서둘러 사건 기록을 정리한 뒤, 평소 누구보다 신뢰하던 사헌부 감찰 청휘를 찾아갔다.",
     ],
-    buttonText: "벽화의 단서 확인",
+    buttonText: "현장 관찰 이어가기",
   },
   {
     id: "interlude-pine-branches",
     type: "interludeMission",
     chapter: "보조 현장 관찰",
     interludeDescription: "7개 단서 수집과 별도로 진행하는 현장 관찰입니다.",
+    transitionContext: "청휘를 찾아가는 길, 조사 동선에서 눈에 띄는 벽화를 발견했다. 지나치기 전 주변을 한 번 더 살펴보자.",
     title: "소나무 나뭇가지 수",
     location: "우물을 등진 정면의 벽화",
     goalSummary: "벽화 속 소나무 관찰 → 나뭇가지 수 세기 → 숫자 입력",
@@ -615,8 +616,11 @@ const storyFlow = [
     title: "현장 사진 인증",
     location: "팝업현장 주변 50m",
     piece: "사랑 안의 행궁 현장 인증",
+    transitionContext: "사라진 기록의 성격이 달라진 만큼, 책상 위 기록만으로 판단할 수는 없다. 다음 조사 지점으로 이동해 주변을 직접 확인하자.",
+    goalSummary: "팝업현장 주변 50m에서 사랑 안의 행궁 찾기 → 카메라로 현장 확인",
+    completionContext: "현장 확인을 마쳤습니다. 사라진 기록들을 다시 검토합니다.",
     intro: "현장을 확인해 사진 인증을 진행한다.",
-    instruction: "팝업현장 주변 50m 내에서 '사랑 안의 행궁'을 찾아 사진 찍으세요.",
+    instruction: "팝업현장 주변 50m 내에서 '사랑 안의 행궁'을 찾아 카메라로 현장을 확인하세요.",
     puzzleType: "ar-scan",
     arTargetImage: "/mission/mission5-love-haenggung-reference-optimized.jpg",
     arScanTargetName: "현장 사진",
@@ -656,7 +660,7 @@ const storyFlow = [
       "“그 아이는 늘 모든 것을 가지고 있었으니까요.”",
       "질투와 체념이 뒤섞인 목소리였다.",
     ],
-    buttonText: "다음 실마리로 이동",
+    buttonText: "다음 현장 조사로",
   },
   {
     id: "mission-6",
@@ -666,6 +670,9 @@ const storyFlow = [
     title: "황금빛 불상 개수",
     location: "서북공심돈",
     piece: "황금빛 불상 관찰 기록",
+    transitionContext: "서화의 말을 곱씹으며 다음 조사 지점으로 향했다. 주변을 확인한 뒤 다시 기록을 이어가자.",
+    goalSummary: "서북공심돈 위에 서서 산 바라보기 → 불상 수 세기 → 숫자 입력",
+    completionContext: "현장 관찰을 마쳤습니다. 서화의 말을 다시 이어갑니다.",
     intro: "황금빛 불상을 찾아 총 개수를 확인한다.",
     instruction: "바닥에 새겨진 '서북공심돈'을 찾아 그 위에 서보세요.",
     rule: [
@@ -697,7 +704,7 @@ const storyFlow = [
       "하지만… 정말 이 사람이 연이를 해하려 했을까?",
       "처음으로 당신의 확신이 흔들리기 시작했다.",
     ],
-    buttonText: "다음 실마리로 이동",
+    buttonText: "기록 계속 읽기",
   },
   {
     id: "story-7",
@@ -2199,6 +2206,7 @@ function App() {
     setCompletionNotice({
       targetNodeId: nextNode?.id,
       piece: currentNode.piece,
+      context: currentNode.completionContext,
       completedMissionCount: pieces.includes(currentNode.piece)
         ? completedMissionCount
         : completedMissionCount + 1,
@@ -2378,6 +2386,9 @@ function App() {
           단서 {completionNotice.completedMissionCount} / {missionNodes.length} 획득
         </strong>
         <span>{completionNotice.piece}</span>
+        {completionNotice.context && (
+          <small>{completionNotice.context}</small>
+        )}
       </section>
     );
   };
@@ -2715,6 +2726,10 @@ function App() {
 
             {currentNode.type === "interludeMission" && (
               <p className="interludeDescription">{currentNode.interludeDescription}</p>
+            )}
+
+            {currentNode.transitionContext && (
+              <p className="transitionContext">{currentNode.transitionContext}</p>
             )}
 
             <section className="missionGoal" aria-label="현재 할 일">

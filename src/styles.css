@@ -2108,6 +2108,16 @@ body {
   font-weight: 800;
 }
 
+.transitionContext {
+  margin: -2px 0 16px;
+  padding: 10px 12px;
+  border-left: 3px solid rgba(151, 108, 54, 0.45);
+  color: var(--muted);
+  font-family: "MaruBuri", serif;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
 .interludeDescription {
   margin: -4px 0 16px;
   color: var(--muted);
@@ -2145,6 +2155,11 @@ body {
 
 .completionNotice p,
 .completionNotice strong,
+.completionNotice small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
 .completionNotice span {
   margin: 0;
 }

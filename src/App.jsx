@@ -19,10 +19,6 @@ const legacyPieceLabelMigrations = {
   "연꽃 벽의 동물 실마리": "황금빛 불상 관찰 기록",
 };
 
-// 현장 테스트에서는 개발 서버 또는 명시적인 Vite flag로만 skip을 노출한다.
-// Production 빌드에서 필요할 때는 VITE_ENABLE_PUZZLE_SKIP=true를 설정한다.
-const TEMP_ALLOW_PUZZLE_SKIP =
-  import.meta.env.DEV || import.meta.env.VITE_ENABLE_PUZZLE_SKIP === "true";
 const EMPTY_STITCH_CONNECTIONS = [];
 
 let storageUnavailableAtLoad = false;
@@ -200,7 +196,6 @@ const gameConfig = {
     "왕비 후보의 서찰",
     "증좌 그림",
     "조사 지도",
-    "기록지",
   ],
 };
 
@@ -2435,7 +2430,6 @@ function App() {
     const inputConfig = getMissionAnswerInputConfig(currentNode);
     const inputId = `${currentNode.id}-answer`;
     const feedbackId = `${currentNode.id}-answer-feedback`;
-    const isTemporaryMission = currentNode.answer?.startsWith("TEMP");
 
     return (
       <form
@@ -2447,7 +2441,7 @@ function App() {
         }}
       >
         <label className="answerLabel" htmlFor={inputId}>
-          {isTemporaryMission ? "임시 답안" : inputConfig.label}
+          {inputConfig.label}
         </label>
         <input
           id={inputId}
@@ -2458,9 +2452,7 @@ function App() {
             setCurrentAnswer(event.target.value);
             if (message) setMessage("");
           }}
-          placeholder={
-            isTemporaryMission ? "임시 퍼즐입니다" : inputConfig.placeholder
-          }
+          placeholder={inputConfig.placeholder}
           inputMode={inputConfig.inputMode}
           maxLength={inputConfig.maxLength}
           autoComplete="off"
@@ -2471,9 +2463,7 @@ function App() {
           aria-describedby={message ? feedbackId : undefined}
         />
 
-        <button type="submit">
-          {isTemporaryMission ? "임시로 진행하기" : "단서 확인"}
-        </button>
+        <button type="submit">단서 확인</button>
       </form>
     );
   };
@@ -2675,7 +2665,7 @@ function App() {
         <input
           value={inputCode}
           onChange={(e) => setInputCode(e.target.value)}
-          placeholder="예: ROYAL-001"
+          placeholder="입장 코드를 입력하세요"
         />
 
         <button onClick={handleCodeSubmit}>서찰 열기</button>
@@ -2689,10 +2679,6 @@ function App() {
         >
           메인으로 돌아가기
         </button>
-
-        <p className="smallText">
-          테스트 코드는 TEST 또는 ROYAL을 사용할 수 있습니다.
-        </p>
 
         {message && <p className="message">{message}</p>}
       </main>
@@ -3210,15 +3196,6 @@ function App() {
                 </section>
               )}
 
-              {TEMP_ALLOW_PUZZLE_SKIP && (
-                <button
-                  type="button"
-                  className="tempSkipAction"
-                  onClick={completeCurrentMissionNode}
-                >
-                  [임시] 다음 단계로
-                </button>
-              )}
             </section>
           </>
         )}

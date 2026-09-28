@@ -78,7 +78,12 @@ function sanitizeMissionTimes(value) {
   if (!isRecord(value)) return {};
   return Object.entries(value).reduce((times, [missionId, seconds]) => {
     const numericSeconds = Number(seconds);
-    if (/^\d+$/.test(missionId) && Number.isFinite(numericSeconds) && numericSeconds >= 0 && numericSeconds <= 86400) {
+    if (
+      /^\d+$/.test(missionId) &&
+      Number.isFinite(numericSeconds) &&
+      numericSeconds >= 0 &&
+      numericSeconds <= 86400
+    ) {
       times[missionId] = numericSeconds;
     }
     return times;
@@ -94,34 +99,67 @@ function sanitizePuzzleProgressByNode(value) {
     if (node.puzzleType === "tile-swap" && isRecord(rawNode.tile)) {
       const expectedIds = node.puzzlePieces.map((piece) => piece.id);
       const rawOrder = rawNode.tile.order;
-      const validOrder = Array.isArray(rawOrder) && rawOrder.length === expectedIds.length && new Set(rawOrder).size === expectedIds.length && rawOrder.every((id) => expectedIds.includes(id));
+      const validOrder =
+        Array.isArray(rawOrder) &&
+        rawOrder.length === expectedIds.length &&
+        new Set(rawOrder).size === expectedIds.length &&
+        rawOrder.every((id) => expectedIds.includes(id));
       if (validOrder) {
-        const isSolved = rawOrder.every((id, index) => id === expectedIds[index]);
-        const selectedIndex = Number.isInteger(rawNode.tile.selectedIndex) && rawNode.tile.selectedIndex >= 0 && rawNode.tile.selectedIndex < expectedIds.length ? rawNode.tile.selectedIndex : null;
+        const isSolved = rawOrder.every(
+          (id, index) => id === expectedIds[index],
+        );
+        const selectedIndex =
+          Number.isInteger(rawNode.tile.selectedIndex) &&
+          rawNode.tile.selectedIndex >= 0 &&
+          rawNode.tile.selectedIndex < expectedIds.length
+            ? rawNode.tile.selectedIndex
+            : null;
         sanitized[node.id] = {
           ...sanitized[node.id],
-          tile: { order: [...rawOrder], selectedIndex: isSolved ? null : selectedIndex, isSolved },
+          tile: {
+            order: [...rawOrder],
+            selectedIndex: isSolved ? null : selectedIndex,
+            isSolved,
+          },
         };
       }
     }
     if (node.puzzleType === "stitch-connect" && isRecord(rawNode.stitch)) {
       const pointIds = new Set(node.stitchPoints.map((point) => point.id));
-      const correctKeys = new Set(node.stitchPairs.map(([a, b]) => getStitchPairKey(a, b)));
+      const correctKeys = new Set(
+        node.stitchPairs.map(([a, b]) => getStitchPairKey(a, b)),
+      );
       const seenKeys = new Set();
-      const connections = Array.isArray(rawNode.stitch.connections) ? rawNode.stitch.connections.reduce((valid, pair) => {
-        if (!Array.isArray(pair) || pair.length !== 2 || !pointIds.has(pair[0]) || !pointIds.has(pair[1])) return valid;
-        const key = getStitchPairKey(pair[0], pair[1]);
-        if (!correctKeys.has(key) || seenKeys.has(key)) return valid;
-        seenKeys.add(key);
-        valid.push([pair[0], pair[1]]);
-        return valid;
-      }, []) : [];
+      const connections = Array.isArray(rawNode.stitch.connections)
+        ? rawNode.stitch.connections.reduce((valid, pair) => {
+            if (
+              !Array.isArray(pair) ||
+              pair.length !== 2 ||
+              !pointIds.has(pair[0]) ||
+              !pointIds.has(pair[1])
+            )
+              return valid;
+            const key = getStitchPairKey(pair[0], pair[1]);
+            if (!correctKeys.has(key) || seenKeys.has(key)) return valid;
+            seenKeys.add(key);
+            valid.push([pair[0], pair[1]]);
+            return valid;
+          }, [])
+        : [];
       const connectedIds = new Set(connections.flat());
-      const selectedPointId = pointIds.has(rawNode.stitch.selectedPointId) && !connectedIds.has(rawNode.stitch.selectedPointId) ? rawNode.stitch.selectedPointId : null;
+      const selectedPointId =
+        pointIds.has(rawNode.stitch.selectedPointId) &&
+        !connectedIds.has(rawNode.stitch.selectedPointId)
+          ? rawNode.stitch.selectedPointId
+          : null;
       const isSolved = connections.length === node.stitchPairs.length;
       sanitized[node.id] = {
         ...sanitized[node.id],
-        stitch: { connections, selectedPointId: isSolved ? null : selectedPointId, isSolved },
+        stitch: {
+          connections,
+          selectedPointId: isSolved ? null : selectedPointId,
+          isSolved,
+        },
       };
     }
   });
@@ -130,7 +168,11 @@ function sanitizePuzzleProgressByNode(value) {
 
 function sanitizeCompletedArNodes(value) {
   if (!Array.isArray(value)) return [];
-  const validArNodes = new Set(storyFlow.filter((node) => node.puzzleType === "ar-scan" || node.arTargetImage).map((node) => node.id));
+  const validArNodes = new Set(
+    storyFlow
+      .filter((node) => node.puzzleType === "ar-scan" || node.arTargetImage)
+      .map((node) => node.id),
+  );
   return [...new Set(value.filter((nodeId) => validArNodes.has(nodeId)))];
 }
 
@@ -343,28 +385,13 @@ const storyFlow = [
     chapter: "두 번째 기록",
     title: "시작일 뿐입니다",
     paragraphs: [
-      "당신은 가장 먼저 증좌 그림 속 깨진 도자기를 조사하기로 했다.",
-      "사진만으로는 알 수 없는 무언가가 있을 것이라는 예감이 들었다.",
-      "도자기는 산산이 부서져 있었지만, 단순한 사고로 깨진 물건처럼 보이지 않았다.",
-      "파편의 단면은 지나치게 날카로웠고, 일부 조각에는 강한 충격을 받은 흔적이 선명하게 남아 있었다.",
-      "실수로 떨어뜨린 것이 아니라 누군가 분명한 의도를 가지고 내리쳐 깨뜨린 듯한 모습이었다.",
-      "더욱 이상한 점은 따로 있었다.",
-      "도자기의 바닥면 안쪽.",
-      "평소라면 쉽게 눈에 띄지 않을 위치에 종이 조각 하나가 끼워져 있었던 것이다.",
-      "조심스럽게 펼쳐본 쪽지에는 단 한 문장만 적혀 있었다.",
+      "당신은 가장 먼저 증좌 그림 속 깨진 도자기를 조사하기로 했다. 사진만으로는 알 수 없는 무언가가 있을 것이라는 예감이 들었다. 도자기는 산산이 부서져 있었지만, 단순한 사고로 깨진 물건처럼 보이지 않았다.",
+      "파편의 단면은 지나치게 날카로웠고, 일부 조각에는 강한 충격을 받은 흔적이 선명하게 남아 있었다. 실수로 떨어뜨린 것이 아니라 누군가 분명한 의도를 가지고 내리쳐 깨뜨린 듯한 모습이었다.",
+      "더욱 이상한 점은 따로 있었다. 도자기의 바닥면 안쪽. 평소라면 쉽게 눈에 띄지 않을 위치에 종이 조각 하나가 끼워져 있었던 것이다. 조심스럽게 펼쳐본 쪽지에는 단 한 문장만 적혀 있었다.",
       "『시작일 뿐입니다.』",
-      "짧고 단순한 문장이었지만, 그 순간 등골을 타고 서늘한 감각이 스쳐 지나갔다.",
-      "누군가가 물건을 망가뜨렸다. 그리고 그 사실을 누군가 발견하기를 바라는 듯 이런 문구까지 남겨두었다.",
-      "이것은 단순한 장난이 아니다.",
-      "더구나 ‘시작’이라는 말은 앞으로도 같은 일이 계속될 것이라는 의미처럼 들렸다.",
-      "당신은 다시 책상 위에 펼쳐진 증좌 그림들을 바라보았다.",
-      "처음에는 서로 관련 없는 물건이라 생각했다. 하지만 이제는 달랐다.",
-      "이 모든 물건들이 하나의 사건으로 연결되어 있다는 불길한 예감이 들었다.",
-      "정체를 숨긴 소녀는 왜 당신에게 도움을 요청한 것일까.",
-      "그리고 누가, 무슨 이유로 이런 일들을 벌이고 있는 것일까.",
-      "당신은 무심코 창밖을 바라보았다.",
-      "며칠 뒤면 궁중의 혼례가 열린다.",
-      "그러나 어쩐지, 그 혼례가 무사히 치러지지 않을 것만 같은 불길한 기분이 가슴 한켠에 자리 잡기 시작했다.",
+      "짧고 단순한 문장이었지만, 그 순간 등골을 타고 서늘한 감각이 스쳐 지나갔다. 누군가가 물건을 망가뜨렸다. 그리고 그 사실을 누군가 발견하기를 바라는 듯 이런 문구까지 남겨두었다. 이것은 단순한 장난이 아니다. 더구나 ‘시작’이라는 말은 앞으로도 같은 일이 계속될 것이라는 의미처럼 들렸다.",
+      "당신은 다시 책상 위에 펼쳐진 증좌 그림들을 바라보았다. 처음에는 서로 관련 없는 물건이라 생각했다. 하지만 이제는 달랐다. 이 모든 물건들이 하나의 사건으로 연결되어 있다는 불길한 예감이 들었다.",
+      "정체를 숨긴 소녀는 왜 당신에게 도움을 요청한 것일까. 그리고 누가, 무슨 이유로 이런 일들을 벌이고 있는 것일까. 당신은 무심코 창밖을 바라보았다. 며칠 뒤면 궁중의 혼례가 열린다. 그러나 어쩐지, 그 혼례가 무사히 치러지지 않을 것만 같은 불길한 기분이 가슴 한켠에 자리 잡기 시작했다.",
     ],
     calloutParagraphIndexes: [9],
     buttonText: "다음 실마리로 이동",
@@ -432,30 +459,14 @@ const storyFlow = [
     chapter: "세 번째 기록",
     title: "그대라는 호칭",
     paragraphs: [
-      "도자기 사건을 조사하던 당신은 다음 실마리를 따라 끊어진 매듭의 기록을 살펴보았다.",
-      "기록에 따르면 이 매듭은 이현 전하가 어린 시절부터 소중히 간직해 온 물건이었다.",
-      "평범한 장식품이 아니라, 특정한 사람과의 약속을 상징하는 물건이었다고 한다.",
-      "그런 물건이 누군가에 의해 날카롭게 끊어져 있었다.",
-      "실수로 풀어진 흔적은 아니었다.",
-      "누군가 의도적으로 잘라낸 것이 분명했다.",
-      "당신은 증좌 그림을 유심히 살펴보다 매듭을 보관하던 함의 안쪽에서 작은 종이 조각 하나를 발견했다.",
-      "바랜 종이 위에는 짧은 문장이 적혀 있었다.",
+      "도자기 사건을 조사하던 당신은 다음 실마리를 따라 끊어진 매듭의 기록을 살펴보았다. 기록에 따르면 이 매듭은 이현 전하가 어린 시절부터 소중히 간직해 온 물건이었다. 평범한 장식품이 아니라, 특정한 사람과의 약속을 상징하는 물건이었다고 한다.",
+      "그런 물건이 누군가에 의해 날카롭게 끊어져 있었다. 실수로 풀어진 흔적은 아니었다. 누군가 의도적으로 잘라낸 것이 분명했다. 당신은 증좌 그림을 유심히 살펴보다 매듭을 보관하던 함의 안쪽에서 작은 종이 조각 하나를 발견했다. 바랜 종이 위에는 짧은 문장이 적혀 있었다.",
       "『전하의 마음은 어찌 늘 그대에게만 머무는지요.』",
-      "순간 당신의 손이 멈췄다.",
-      "단순한 원망. 혹은 질투. 그런 감정이 묻어나는 문장이었다.",
-      "하지만 이상한 점은 따로 있었다.",
-      "‘그대’라는 호칭이었다.",
-      "궁중 기록을 다루는 당신은 알고 있었다.",
-      "궁 안에서 연이를 향해 ‘그대’라는 표현을 사용하는 사람은 거의 없었다.",
-      "그 호칭은 지나치게 사적인 표현이었다.",
+      "순간 당신의 손이 멈췄다. 단순한 원망. 혹은 질투. 그런 감정이 묻어나는 문장이었다. 하지만 이상한 점은 따로 있었다.",
+      "‘그대’라는 호칭이었다. 궁중 기록을 다루는 당신은 알고 있었다. 궁 안에서 연이를 향해 ‘그대’라는 표현을 사용하는 사람은 거의 없었다. 그 호칭은 지나치게 사적인 표현이었다.",
       "그리고 당신이 알기로, 평소 연이를 향해 그런 말을 사용하던 사람은 단 한 명뿐이었다.",
-      "왕비 후보 서화.",
-      "연이와 함께 간택전에 참여하고 있는 또 다른 후보.",
-      "물론 이것만으로 그녀를 흉수라 단정할 수는 없었다.",
-      "당신은 천천히 그 이름을 되뇌었다.",
-      "지금까지는 정체를 알 수 없는 누군가의 짓이라 생각했다.",
-      "그러나 이제는 달랐다.",
-      "사건의 배후에 있는 인물이 조금씩 모습을 드러내기 시작하고 있었다.",
+      "서화, 연이와 함께 간택전에 참여하고 있는 또 다른 후보.",
+      "물론 이것만으로 그녀를 흉수라 단정할 수는 없었다. 당신은 천천히 그 이름을 되뇌었다. 지금까지는 정체를 알 수 없는 누군가의 짓이라 생각했다. 그러나 이제는 달랐다. 사건의 배후에 있는 인물이 조금씩 모습을 드러내기 시작하고 있었다.",
     ],
     calloutParagraphIndexes: [8],
     buttonText: "나녕공방으로 이동",
@@ -493,15 +504,10 @@ const storyFlow = [
     chapter: "네 번째 기록",
     title: "너무 빠른 종결",
     paragraphs: [
-      "사라진 팔찌에 대한 조사를 이어가던 당신은 마침내 중요한 증언 하나를 확보하게 된다.",
-      "오랫동안 망설이던 한 궁녀는 주변을 몇 번이나 살핀 뒤에야 조심스럽게 입을 열었다.",
-      "“며칠 전 밤이었습니다. 우연히 후원을 지나던 중, 서화 규수를 따라온 몸종이 무언가를 품에 숨긴 채 급히 지나가는 모습을 보았습니다.”",
-      "“당시에는 대수롭지 않게 여겼으나... 지금 생각해보면 팔찌였을지도 모르겠습니다.”",
-      "그 말을 들은 순간, 지금까지 모아온 실마리들이 머릿속에서 하나로 이어지기 시작했다.",
-      "게다가 매듭 사건 당시 발견된 쪽지의 필적과 표현 역시 서화를 자연스럽게 떠올리게 만들었다.",
-      "물론 확실한 증좌는 없었다.",
-      "그러나 지금까지 드러난 정황만 놓고 본다면 가장 유력한 인물은 분명 서화였다.",
-      "당신은 서둘러 사건 기록을 정리한 뒤, 평소 누구보다 신뢰하던 사헌부 감찰 청휘를 찾아갔다.",
+      "사라진 팔찌에 대한 조사를 이어가던 당신은 마침내 중요한 증언 하나를 확보하게 된다. 오랫동안 망설이던 한 궁녀는 주변을 몇 번이나 살핀 뒤에야 조심스럽게 입을 열었다.",
+      "“며칠 전 밤이었습니다. 우연히 후원을 지나던 중, 서화 규수를 따라온 몸종이 무언가를 품에 숨긴 채 급히 지나가는 모습을 보았습니다. 당시에는 대수롭지 않게 여겼으나... 지금 생각해보면 팔찌였을지도 모르겠습니다.”",
+      "그 말을 들은 순간, 지금까지 모아온 실마리들이 머릿속에서 하나로 이어지기 시작했다. 게다가 매듭 사건 당시 발견된 쪽지의 필적과 표현 역시 서화를 자연스럽게 떠올리게 만들었다. 물론 확실한 증좌는 없었다. 그러나 지금까지 드러난 정황만 놓고 본다면 가장 유력한 인물은 분명 서화였다.",
+      "당신은 서둘러 사건 기록을 정리한 뒤, 평소 누구보다 신뢰하던 사헌부 감찰 청휘를 찾아갔다. ",
     ],
     buttonText: "현장 관찰 이어가기",
   },
@@ -510,7 +516,8 @@ const storyFlow = [
     type: "interludeMission",
     chapter: "보조 현장 관찰",
     interludeDescription: "7개 단서 수집과 별도로 진행하는 현장 관찰입니다.",
-    transitionContext: "청휘를 찾아가는 길, 조사 동선에서 눈에 띄는 벽화를 발견했다. 지나치기 전 주변을 한 번 더 살펴보자.",
+    transitionContext:
+      "청휘를 찾아가는 길, 조사 동선에서 눈에 띄는 벽화를 발견했다. 지나치기 전 주변을 한 번 더 살펴보자.",
     title: "소나무 나뭇가지 수",
     location: "우물을 등진 정면의 벽화",
     goalSummary: "벽화 속 소나무 관찰 → 나뭇가지 수 세기 → 숫자 입력",
@@ -530,33 +537,21 @@ const storyFlow = [
     chapter: "네 번째 기록",
     title: "너무 빠른 종결",
     paragraphs: [
-      "청휘는 당신이 처음 감찰 업무를 맡았을 때부터 곁에서 가르침을 주었던 인물이었다.",
-      "누구보다 깐깐했고, 작은 모순 하나도 절대 그냥 넘어가지 않는 사람.",
-      "그래서 궁 안에서는 그를 두고 ‘한 번 물면 놓지 않는 사냥개’라 부르곤 했다.",
+      "청휘는 당신이 처음 감찰 업무를 맡았을 때부터 곁에서 가르침을 주었던 인물이었다. 누구보다 깐깐했고, 작은 모순 하나도 절대 그냥 넘어가지 않는 사람. 그래서 궁 안에서는 그를 두고 ‘한 번 물면 놓지 않는 사냥개’라 부르곤 했다.",
       "당신은 지금까지 수집한 증좌와 증언들을 모두 설명했다.",
       "“청휘 나리, 흉수를 찾은 것 같습니다.”",
-      "잠시 침묵이 흘렀다.",
-      "청휘는 기록을 천천히 훑어보더니 뜻밖에도 작게 웃음을 터뜨렸다.",
+      "잠시 침묵이 흘렀다. 청휘는 기록을 천천히 훑어보더니 뜻밖에도 작게 웃음을 터뜨렸다.",
       "“그래. 수고했군.”",
-      "당신은 순간 당황했다.",
-      "칭찬에 인색하기로 유명한 청휘가 이렇게 쉽게 인정하는 모습은 처음이었기 때문이다.",
+      "당신은 순간 당황했다. 칭찬에 인색하기로 유명한 청휘가 이렇게 쉽게 인정하는 모습은 처음이었기 때문이다.",
       "“그렇다면... 서화를 조사해야 하지 않겠습니까?”",
       "당신의 질문에 청휘는 고개를 저었다.",
       "“충분하네.”",
       "“예?”",
       "“이미 흉수가 드러났지 않은가. 혼례도 얼마 남지 않았는데 더 이상 일을 키울 필요는 없네.”",
-      "그 말은 어딘가 이상했다.",
-      "평소의 청휘였다면 증언 하나만으로 사건을 종결하지 않았을 것이다.",
-      "오히려 몸종을 불러 심문하고, 그날 밤의 행적을 캐묻고, 며칠 밤을 새워서라도 진실을 확인하려 했을 사람이다.",
-      "하지만 오늘의 청휘는 달랐다.",
-      "마치 이미 결론을 정해놓은 사람처럼.",
-      "마치 사건이 더 깊어지는 것을 원하지 않는 사람처럼.",
+      "그 말은 어딘가 이상했다. 평소의 청휘였다면 증언 하나만으로 사건을 종결하지 않았을 것이다.",
+      "오히려 몸종을 불러 심문하고, 그날 밤의 행적을 캐묻고, 며칠 밤을 새워서라도 진실을 확인하려 했을 사람이다. 하지만 오늘의 청휘는 달랐다. 마치 이미 결론을 정해놓은 사람처럼. 마치 사건이 더 깊어지는 것을 원하지 않는 사람처럼.",
       "“남은 일은 윗분들께 맡기게. 자네는 이 정도면 충분히 제 몫을 했네.”",
-      "청휘는 기록철을 덮으며 대화를 끝내려 했다.",
-      "당신은 고개를 끄덕였지만, 왠지 모를 위화감이 가슴 한구석에 남았다.",
-      "분명 지금까지의 실마리는 모두 서화를 가리키고 있었다.",
-      "그런데 어째서일까.",
-      "사건을 종결하려는 청휘의 모습이, 처음으로 낯설게 느껴졌다.",
+      "청휘는 기록철을 덮으며 대화를 끝내려 했다.당신은 고개를 끄덕였지만, 왠지 모를 위화감이 가슴 한구석에 남았다. 분명 지금까지의 실마리는 모두 서화를 가리키고 있었다. 이대로 사건을 종결해도 크게 문제될 것은 없을 것만 같았다. 그런데 어째서일까. 사건을 종결하려는 청휘의 모습이, 처음으로 낯설게 느껴졌다.",
     ],
     buttonText: "길 위의 실마리 확인",
   },
@@ -616,11 +611,15 @@ const storyFlow = [
     title: "현장 사진 인증",
     location: "팝업현장 주변 50m",
     piece: "사랑 안의 행궁 현장 인증",
-    transitionContext: "사라진 기록의 성격이 달라진 만큼, 책상 위 기록만으로 판단할 수는 없다. 다음 조사 지점으로 이동해 주변을 직접 확인하자.",
-    goalSummary: "팝업현장 주변 50m에서 사랑 안의 행궁 찾기 → 카메라로 현장 확인",
-    completionContext: "현장 확인을 마쳤습니다. 사라진 기록들을 다시 검토합니다.",
+    transitionContext:
+      "사라진 기록의 성격이 달라진 만큼, 책상 위 기록만으로 판단할 수는 없다. 다음 조사 지점으로 이동해 주변을 직접 확인하자.",
+    goalSummary:
+      "팝업현장 주변 50m에서 사랑 안의 행궁 찾기 → 카메라로 현장 확인",
+    completionContext:
+      "현장 확인을 마쳤습니다. 사라진 기록들을 다시 검토합니다.",
     intro: "현장을 확인해 사진 인증을 진행한다.",
-    instruction: "팝업현장 주변 50m 내에서 '사랑 안의 행궁'을 찾아 카메라로 현장을 확인하세요.",
+    instruction:
+      "팝업현장 주변 50m 내에서 '사랑 안의 행궁'을 찾아 카메라로 현장을 확인하세요.",
     puzzleType: "ar-scan",
     arTargetImage: "/mission/mission5-love-haenggung-reference-optimized.jpg",
     arScanTargetName: "현장 사진",
@@ -670,7 +669,8 @@ const storyFlow = [
     title: "황금빛 불상 개수",
     location: "서북공심돈",
     piece: "황금빛 불상 관찰 기록",
-    transitionContext: "서화의 말을 곱씹으며 다음 조사 지점으로 향했다. 주변을 확인한 뒤 다시 기록을 이어가자.",
+    transitionContext:
+      "서화의 말을 곱씹으며 다음 조사 지점으로 향했다. 주변을 확인한 뒤 다시 기록을 이어가자.",
     goalSummary: "서북공심돈 위에 서서 산 바라보기 → 불상 수 세기 → 숫자 입력",
     completionContext: "현장 관찰을 마쳤습니다. 서화의 말을 다시 이어갑니다.",
     intro: "황금빛 불상을 찾아 총 개수를 확인한다.",
@@ -748,53 +748,104 @@ const storyFlow = [
     acceptedAnswers: ["용", "룡"],
   },
   {
-    id: "ending",
+    id: "ending-part-a",
     type: "ending",
+    endingPart: "a",
     title: "혼례의 진실",
     paragraphs: [
       "마지막 암호가 해독되는 순간, 흩어져 있던 실마리들은 하나의 진실로 이어졌다.",
-      "깨진 도자기.",
-      "끊어진 매듭.",
-      "사라진 팔찌.",
-      "찢겨진 연서.",
-      "그리고 사라진 기록들.",
-      "지금까지의 모든 사건 뒤에는 사헌부 감찰 청휘의 음모가 숨어 있었다.",
-      "청휘는 자신의 혈육인 서화를 왕비의 자리에 앉히고, 그 권세를 이용해 궁중의 실권을 손에 넣으려 했다.",
-      "서화의 질투심을 부추기고 이용하며 사건을 꾸몄고, 마침내 연이를 해하려는 계책까지 세웠다.",
-      "모든 진실이 밝혀지자 이현은 큰 충격에 빠졌다.",
-      "그동안 자신이 들었던 소문들.",
-      "연이를 의심하게 만들었던 수많은 이야기들.",
-      "그리고 두 사람의 사이를 갈라놓았던 사건들.",
-      "그 모든 것이 누군가의 손에 의해 날조된 것이었다.",
-      "이현은 비로소 자신의 곁을 묵묵히 지켜온 연이를 바라보았다.",
-      "연이 또한 아무 말 없이 그의 시선을 받아들였다.",
-      "오랫동안 쌓여 있던 오해와 의심은 그렇게 조금씩 사라져 갔다.",
-      "청휘는 간택 총책임자의 자리에서 물러나 조사를 받게 되었다.",
-      "서화 역시 간택에서 제외되었고, 궁을 떠나게 되었다.",
-      "궁을 떠나는 날.",
-      "서화는 마지막으로 연이를 찾아왔다.",
-      "한동안 아무 말도 하지 못하던 그녀는 천천히 고개를 숙였다.",
+      "깨진 도자기, 끊어진 매듭, 사라진 팔찌, 찢겨진 연서, 그리고 사라진 기록들...",
+      "지금까지의 모든 사건 뒤에는 사헌부 감찰 청휘의 음모가 숨어 있었다. 청휘는 자신의 혈육인 서화를 왕비의 자리에 앉히고, 그 권세를 이용해 궁중의 실권을 손에 넣으려 했다. 서화의 질투심을 부추기고 이용하며 사건을 꾸몄고, 마침내 연이를 해하려는 계책까지 세웠다. ",
+      "모든 진실이 밝혀지자 이현은 큰 충격에 빠졌다. 그동안 자신이 들었던 소문들, 연이를 의심하게 만들었던 수많은 이야기들, 그리고 두 사람의 사이를 갈라놓았던 사건들. 그 모든 것이 누군가의 손에 의해 날조된 것이었다.",
+      "이현은 비로소 자신의 곁을 묵묵히 지켜온 연이를 바라보았다. 연이 또한 아무 말 없이 그의 시선을 받아들였다. 오랫동안 쌓여 있던 오해와 의심은 그렇게 조금씩 사라져 갔다.",
+      "청휘는 간택 총책임자의 자리에서 물러나 조사를 받게 되었다. 서화 역시 간택에서 제외되었고, 궁을 떠나게 되었다.",
+      "궁을 떠나는 날. 서화는 마지막으로 연이를 찾아왔다. 한동안 아무 말도 하지 못하던 그녀는 천천히 고개를 숙였다.",
       "“미안했습니다.”",
       "“...”",
       "“그대를 미워한다고 생각했어요. 하지만 지금 와서 보니, 사실은 제가 가진 것을 잃을까 두려웠던 것 같습니다.”",
-      "연이는 잠시 그녀를 바라보았다.",
-      "어린 시절 함께 궁에 들어와 울고 웃으며 자라온 시간들이 스쳐 지나갔다.",
+      "연이는 잠시 그녀를 바라보았다. 어린 시절 함께 궁에 들어와 울고 웃으며 자라온 시간들이 스쳐 지나갔다.",
       "“서화가 한 일을 없었던 일로 할 수는 없어요.”",
       "서화의 어깨가 작게 떨렸다.",
       "“하지만 어떤 마음으로 그랬는지는 알 수 있어요. 이해할 수 있어요.”",
-      "그 말에 서화는 끝내 눈물을 보이고 말았다.",
-      "연이는 더 이상 아무 말도 하지 않았다.",
-      "그것이 용서도, 원망도 아닌 두 사람만의 작별이었다.",
+      "그 말에 서화는 끝내 눈물을 보이고 말았다. 연이는 더 이상 아무 말도 하지 않았다. 그것이 용서도, 원망도 아닌 두 사람만의 작별이었다.",
+    ],
+    transitionContext:
+      "두 사람의 새로운 시작을 앞두고, 꽃에 담긴 문장을 먼저 해독해보세요.",
+    buttonText: "마지막 단서 해독하기",
+  },
+  {
+    id: "interlude-flower-trace",
+    type: "interludeMission",
+    chapter: "추가 단서 해독",
+    interludeDescription: "7개 공식 단서와 별도로 진행하는 추가 해독입니다.",
+    goalSummary:
+      "상단 문양 확인 → 꽃 색을 왼쪽부터 읽기 → 단어 조합 → 문장 입력",
+    completionTitle: "추가 해독 완료",
+    completionText: "마지막 기록을 이어갑니다.",
+    title: "피어나는 궤적",
+    location: "꽃을 담다 종이노리",
+    intro: "꽃의 색을 단어로 바꾸어 마지막 기록으로 이어지는 문장을 완성하라.",
+    instruction:
+      "꽃을 담다 종이노리 매장의 상단 문양과 매장 앞 데크에 놓인 꽃을 확인하라.",
+    contentBlocks: [
+      {
+        type: "text",
+        text: "먼저 매장 정면 상단의 장식 문양을 확인하라.",
+      },
+      {
+        type: "text",
+        text: "가장 반복해서 나타나는 문양이 무엇인지 찾는다.",
+      },
+      {
+        type: "image",
+        src: "/mission/mission5-jonginori-pattern.webp",
+        alt: "피어나는 궤적 참고 이미지 1",
+      },
+      {
+        type: "text",
+        text: "그 문양이 꽃이라면, 매장 앞 데크에 놓인 꽃의 색을 왼쪽부터 오른쪽 순서대로 읽어라.",
+      },
+      {
+        type: "image",
+        src: "/mission/mission5-jonginori-flowers.webp",
+        alt: "피어나는 궤적 참고 이미지 2",
+      },
+      {
+        type: "text",
+        text: "색마다 대응되는 단어를 조합해 실마리를 완성하라.",
+      },
+      {
+        type: "rule",
+        lines: [
+          "분홍 = 날",
+          "노랑 = 두",
+          "하양 = 하나의",
+          "빨강 = 이름",
+          "정답은 완성된 문장이다.",
+        ],
+      },
+    ],
+    hints: [
+      "상단 장식 문양에서 가장 많이 반복되는 모양을 먼저 확인하라.",
+      "가장 반복되는 문양이 꽃이라면, 데크 앞 꽃의 색 순서를 읽으면 된다.",
+      "색 이름을 입력하는 것이 아니라, 색에 대응되는 단어를 조합해야 한다.",
+      "띄어쓰기는 정답 판정에 영향을 주지 않는다.",
+    ],
+    answer: "하나의날두이름",
+  },
+  {
+    id: "ending",
+    type: "ending",
+    endingPart: "b",
+    title: "혼례의 진실",
+    paragraphs: [
       "며칠 뒤.",
-      "궁중에서는 마침내 혼례가 열렸다.",
-      "화려한 장식들 사이에는 익숙한 물건들이 놓여 있었다.",
+      "궁중에서는 마침내 혼례가 열렸다. 화려한 장식들 사이에는 익숙한 물건들이 놓여 있었다.",
       "정성껏 복원된 도자기.",
       "다시 이어진 약속의 매듭.",
       "되찾은 팔찌.",
       "그리고 새롭게 복원된 추억의 기록들.",
-      "한때 누군가의 질투와 욕망으로 훼손되었던 물건들은 이제 두 사람의 새로운 시작을 축복하는 증표가 되었다.",
-      "혼례가 끝난 뒤, 이현과 연이는 사람들 틈에서 잠시 당신을 바라보았다.",
-      "두 사람은 아무 말 없이 미소 지었다.",
+      "한때 누군가의 질투와 욕망으로 훼손되었던 물건들은 이제 두 사람의 새로운 시작을 축복하는 증표가 되었다. 혼례가 끝난 뒤, 이현과 연이는 사람들 틈에서 잠시 당신을 바라보았다. 두 사람은 아무 말 없이 미소 지었다. ",
       "그것만으로 충분했다.",
       "당신이 밝혀낸 진실 덕분에, 잃어버릴 뻔했던 믿음과 약속은 다시 제자리를 찾을 수 있었으니까.",
       "그렇게 궁 안에 흩어졌던 추억들은 마침내 하나의 이야기로 완성되었다.",
@@ -842,7 +893,11 @@ const workshopRecommendations = {
     statName: "현장 관찰",
     description:
       "주변의 특징을 빠르게 파악하고 목표 장소를 정확하게 찾아냈습니다. 현장 단서를 눈여겨보며 탐색하는 데 강한 타입입니다.",
-    recommendedCrafts: ["행궁동 골목 산책", "공방거리 현장 탐방", "사진 속 장소 찾기"],
+    recommendedCrafts: [
+      "행궁동 골목 산책",
+      "공방거리 현장 탐방",
+      "사진 속 장소 찾기",
+    ],
   },
 };
 
@@ -925,14 +980,29 @@ function addCalendarMonth(date) {
   if (Number.isNaN(source.getTime())) return null;
   const targetYear = source.getFullYear();
   const targetMonth = source.getMonth() + 1;
-  const lastDayOfTargetMonth = new Date(targetYear, targetMonth + 1, 0).getDate();
-  return new Date(targetYear, targetMonth, Math.min(source.getDate(), lastDayOfTargetMonth));
+  const lastDayOfTargetMonth = new Date(
+    targetYear,
+    targetMonth + 1,
+    0,
+  ).getDate();
+  return new Date(
+    targetYear,
+    targetMonth,
+    Math.min(source.getDate(), lastDayOfTargetMonth),
+  );
 }
 
 function getCouponExpireDateText(issuedAt) {
   const expireDate = addCalendarMonth(issuedAt);
   if (!expireDate) return "클리어 시각 확인 필요";
-  return expireDate.getFullYear() + "년 " + (expireDate.getMonth() + 1) + "월 " + expireDate.getDate() + "일";
+  return (
+    expireDate.getFullYear() +
+    "년 " +
+    (expireDate.getMonth() + 1) +
+    "월 " +
+    expireDate.getDate() +
+    "일"
+  );
 }
 
 function sanitizeScreen(screen) {
@@ -987,6 +1057,17 @@ function migrateFlowIndexFromLegacyVersion(flowIndex) {
   return legacyFlowIndex;
 }
 
+function migrateFlowIndexBeforeEndingSplit(index) {
+  // Index-only saves predate the split. Keep their final-record / Clear position
+  // by mapping the former ending index to Part B, which retains the ending ID.
+  const endingStartIndex = storyFlow.findIndex(
+    (node) => node.id === "ending-part-a",
+  );
+  return index === endingStartIndex
+    ? storyFlow.findIndex((node) => node.id === "ending")
+    : clampFlowIndex(index);
+}
+
 function getSavedFlowIndex(data) {
   const savedNodeIndex = storyFlow.findIndex(
     (node) => node.id === data.flowNodeId,
@@ -995,19 +1076,25 @@ function getSavedFlowIndex(data) {
   if (savedNodeIndex >= 0) return savedNodeIndex;
 
   if (data.flowSaveVersion === FLOW_SAVE_VERSION) {
-    return clampFlowIndex(data.flowIndex);
+    return migrateFlowIndexBeforeEndingSplit(data.flowIndex);
   }
 
   if (data.flowSaveVersion === PREVIOUS_FLOW_SAVE_VERSION) {
-    return migrateFlowIndexFromVersion2(data.flowIndex);
+    return migrateFlowIndexBeforeEndingSplit(
+      migrateFlowIndexFromVersion2(data.flowIndex),
+    );
   }
 
-  return migrateFlowIndexFromLegacyVersion(data.flowIndex);
+  return migrateFlowIndexBeforeEndingSplit(
+    migrateFlowIndexFromLegacyVersion(data.flowIndex),
+  );
 }
 
 function migrateSavedPieces(pieces) {
   if (!Array.isArray(pieces)) return [];
-  const migratedPieces = pieces.filter((piece) => typeof piece === "string").map((piece) => legacyPieceLabelMigrations[piece] || piece);
+  const migratedPieces = pieces
+    .filter((piece) => typeof piece === "string")
+    .map((piece) => legacyPieceLabelMigrations[piece] || piece);
   return migratedPieces;
 }
 
@@ -1049,18 +1136,33 @@ function loadInitialGameState() {
     return {
       ...defaults,
       screen: sanitizeScreen(data.screen),
-      inputCode: typeof data.inputCode === "string" ? data.inputCode.slice(0, 40) : "",
-      teamName: typeof data.teamName === "string" ? data.teamName.slice(0, 80) : "",
+      inputCode:
+        typeof data.inputCode === "string" ? data.inputCode.slice(0, 40) : "",
+      teamName:
+        typeof data.teamName === "string" ? data.teamName.slice(0, 80) : "",
       flowIndex: getSavedFlowIndex(data),
-      openedHints: Array.isArray(data.openedHints) ? data.openedHints.filter((hint) => typeof hint === "string") : [],
-      hintCount: Number.isInteger(data.hintCount) && data.hintCount >= 0 ? data.hintCount : 0,
+      openedHints: Array.isArray(data.openedHints)
+        ? data.openedHints.filter((hint) => typeof hint === "string")
+        : [],
+      hintCount:
+        Number.isInteger(data.hintCount) && data.hintCount >= 0
+          ? data.hintCount
+          : 0,
       pieces: migrateSavedPieces(data.pieces),
       startTime: Number.isFinite(data.startTime) ? data.startTime : null,
-      clearTimeSeconds: Number.isFinite(data.clearTimeSeconds) ? data.clearTimeSeconds : null,
-      completionTimestamp: Number.isFinite(data.completionTimestamp) ? data.completionTimestamp : null,
-      missionStartTime: Number.isFinite(data.missionStartTime) ? data.missionStartTime : null,
+      clearTimeSeconds: Number.isFinite(data.clearTimeSeconds)
+        ? data.clearTimeSeconds
+        : null,
+      completionTimestamp: Number.isFinite(data.completionTimestamp)
+        ? data.completionTimestamp
+        : null,
+      missionStartTime: Number.isFinite(data.missionStartTime)
+        ? data.missionStartTime
+        : null,
       missionTimes: sanitizeMissionTimes(data.missionTimes),
-      puzzleProgressByNode: sanitizePuzzleProgressByNode(data.puzzleProgressByNode),
+      puzzleProgressByNode: sanitizePuzzleProgressByNode(
+        data.puzzleProgressByNode,
+      ),
       answerDraftsByNode: sanitizeAnswerDrafts(data.answerDraftsByNode),
       completedArNodes: sanitizeCompletedArNodes(data.completedArNodes),
     };
@@ -1220,9 +1322,7 @@ function StitchConnectPuzzle({
 
   const correctPairKeys = useMemo(() => {
     return new Set(
-      correctPairs.map(([fromId, toId]) =>
-        getStitchPairKey(fromId, toId),
-      ),
+      correctPairs.map(([fromId, toId]) => getStitchPairKey(fromId, toId)),
     );
   }, [correctPairs]);
 
@@ -1605,8 +1705,7 @@ function ARScanGate({
   matchThreshold = 0.55,
   maxFailCount = 3,
   targetName = "간판",
-  guideDescription =
-    "반투명 기준 이미지와 실제 가게 간판이 최대한 겹치도록 카메라를 맞춘 뒤 판정하세요.",
+  guideDescription = "반투명 기준 이미지와 실제 가게 간판이 최대한 겹치도록 카메라를 맞춘 뒤 판정하세요.",
   onCompleted,
 }) {
   const videoRef = useRef(null);
@@ -1657,12 +1756,24 @@ function ARScanGate({
       }
       setIsCameraStarted(true);
     } catch (error) {
-      if (error?.name === "NotAllowedError" || error?.name === "PermissionDeniedError") {
-        setCameraError("카메라 권한이 거부되었습니다. 브라우저 권한을 허용하거나 수동 확인으로 계속하세요.");
-      } else if (error?.name === "NotFoundError" || error?.name === "NotReadableError") {
-        setCameraError("사용할 카메라를 찾거나 시작하지 못했습니다. 다른 카메라를 닫고 다시 시도하거나 수동 확인으로 계속하세요.");
+      if (
+        error?.name === "NotAllowedError" ||
+        error?.name === "PermissionDeniedError"
+      ) {
+        setCameraError(
+          "카메라 권한이 거부되었습니다. 브라우저 권한을 허용하거나 수동 확인으로 계속하세요.",
+        );
+      } else if (
+        error?.name === "NotFoundError" ||
+        error?.name === "NotReadableError"
+      ) {
+        setCameraError(
+          "사용할 카메라를 찾거나 시작하지 못했습니다. 다른 카메라를 닫고 다시 시도하거나 수동 확인으로 계속하세요.",
+        );
       } else {
-        setTechnicalError("카메라를 시작하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.");
+        setTechnicalError(
+          "카메라를 시작하지 못했습니다. 다시 시도하거나 수동으로 현장을 확인하세요.",
+        );
       }
     } finally {
       setIsStartingCamera(false);
@@ -1747,14 +1858,22 @@ function ARScanGate({
       const nextFailCount = failCount + 1;
       setFailCount(nextFailCount);
 
-      setScanMessage("현장 모습이 기준 사진과 충분히 일치하지 않습니다. 거리와 각도를 조정한 뒤 다시 확인해보세요.");
+      setScanMessage(
+        "현장 모습이 기준 사진과 충분히 일치하지 않습니다. 거리와 각도를 조정한 뒤 다시 확인해보세요.",
+      );
     } catch (error) {
       if (error?.code === "REFERENCE_TIMEOUT") {
-        setTechnicalError("기준 사진을 불러오는 데 시간이 걸리고 있습니다. 다시 시도하거나 수동 확인으로 계속하세요.");
+        setTechnicalError(
+          "기준 사진을 불러오는 데 시간이 걸리고 있습니다. 다시 시도하거나 수동 확인으로 계속하세요.",
+        );
       } else if (error?.code === "REFERENCE_LOAD") {
-        setTechnicalError("기준 사진을 불러오지 못했습니다. 다시 시도하거나 수동 확인으로 계속하세요.");
+        setTechnicalError(
+          "기준 사진을 불러오지 못했습니다. 다시 시도하거나 수동 확인으로 계속하세요.",
+        );
       } else {
-        setTechnicalError("현장 화면을 비교하는 중 오류가 발생했습니다. 다시 시도하거나 수동 확인으로 계속하세요.");
+        setTechnicalError(
+          "현장 화면을 비교하는 중 오류가 발생했습니다. 다시 시도하거나 수동 확인으로 계속하세요.",
+        );
       }
     } finally {
       setIsScanning(false);
@@ -1791,7 +1910,9 @@ function ARScanGate({
 
         <div className="arFrameGuide" aria-hidden="true" />
         {!isCameraStarted && (
-          <p className="arCameraPlaceholder">위 버튼을 누르면 카메라 화면이 시작됩니다.</p>
+          <p className="arCameraPlaceholder">
+            위 버튼을 누르면 카메라 화면이 시작됩니다.
+          </p>
         )}
       </div>
 
@@ -1818,7 +1939,9 @@ function ARScanGate({
       <button
         type="button"
         onClick={handleScan}
-        disabled={isScanning || !targetImage || !!cameraError || !isCameraStarted}
+        disabled={
+          isScanning || !targetImage || !!cameraError || !isCameraStarted
+        }
       >
         {isScanning
           ? "현재 화면을 판정하는 중..."
@@ -1854,7 +1977,8 @@ function App() {
   const [teamName, setTeamName] = useState(initialGameState.teamName);
   const [flowIndex, setFlowIndex] = useState(initialGameState.flowIndex);
   const [answer, setAnswer] = useState(
-    initialGameState.answerDraftsByNode?.[initialFlowNode.id] || initialGameState.answer,
+    initialGameState.answerDraftsByNode?.[initialFlowNode.id] ||
+      initialGameState.answer,
   );
   const [openedHints, setOpenedHints] = useState(initialGameState.openedHints);
   const [hintCount, setHintCount] = useState(initialGameState.hintCount);
@@ -1864,17 +1988,24 @@ function App() {
   const [clearTimeSeconds, setClearTimeSeconds] = useState(
     initialGameState.clearTimeSeconds,
   );
-  const [completionTimestamp, setCompletionTimestamp] = useState(initialGameState.completionTimestamp);
+  const [completionTimestamp, setCompletionTimestamp] = useState(
+    initialGameState.completionTimestamp,
+  );
   const [now, setNow] = useState(() => Date.now());
   const [missionStartTime, setMissionStartTime] = useState(
     initialGameState.missionStartTime,
   );
-  const [missionTimes, setMissionTimes] = useState(initialGameState.missionTimes);
+  const [missionTimes, setMissionTimes] = useState(
+    initialGameState.missionTimes,
+  );
   const [rankingSaveStatus, setRankingSaveStatus] = useState(
     initialGameState.rankingSaveStatus,
   );
   const [missionPuzzleSolved, setMissionPuzzleSolved] = useState(() =>
-    getPuzzleSolvedForNode(initialFlowNode, initialGameState.puzzleProgressByNode),
+    getPuzzleSolvedForNode(
+      initialFlowNode,
+      initialGameState.puzzleProgressByNode,
+    ),
   );
   const [arScanDone, setArScanDone] = useState(() =>
     initialGameState.completedArNodes.includes(initialFlowNode.id),
@@ -1957,14 +2088,13 @@ function App() {
   const isLocationDiscoveryMission =
     isMissionFlowNode(currentNode) &&
     currentNode.instruction?.includes("장소를 찾아라");
-  const currentMissionAction =
-    !isMissionFlowNode(currentNode)
-      ? ""
-      : currentNode.puzzleType === "tile-swap" && missionPuzzleSolved
-        ? arScanDone
-          ? currentNode.choiceQuestion?.description || currentNode.instruction
-          : currentNode.afterPuzzleText || currentNode.instruction
-        : currentNode.instruction;
+  const currentMissionAction = !isMissionFlowNode(currentNode)
+    ? ""
+    : currentNode.puzzleType === "tile-swap" && missionPuzzleSolved
+      ? arScanDone
+        ? currentNode.choiceQuestion?.description || currentNode.instruction
+        : currentNode.afterPuzzleText || currentNode.instruction
+      : currentNode.instruction;
 
   const workshopResult = useMemo(
     () => getFastestWorkshop(missionTimes),
@@ -2118,7 +2248,7 @@ function App() {
   };
 
   const goNextFlow = () => {
-    if (currentNode.type === "ending") {
+    if (currentNode.type === "ending" && currentNode.endingPart !== "a") {
       setCompletionNotice(null);
       finishInvestigation();
       return;
@@ -2139,7 +2269,9 @@ function App() {
       setCompletionNotice(null);
     }
 
-    setMissionPuzzleSolved(getPuzzleSolvedForNode(nextNode, puzzleProgressByNode));
+    setMissionPuzzleSolved(
+      getPuzzleSolvedForNode(nextNode, puzzleProgressByNode),
+    );
     setArScanDone(completedArNodes.includes(nextNode?.id));
     setAnswer(answerDraftsByNode[nextNode?.id] || "");
     setMessage("");
@@ -2231,7 +2363,13 @@ function App() {
     if (currentNode.type !== "interludeMission") return;
 
     const nextNode = storyFlow[Math.min(flowIndex + 1, storyFlow.length - 1)];
-    setInterludeNotice({ targetNodeId: nextNode?.id });
+    setInterludeNotice({
+      targetNodeId: nextNode?.id,
+      title: currentNode.completionTitle || "보조 관찰 완료",
+      text:
+        currentNode.completionText ||
+        "벽화 관찰 완료 · 네 번째 기록을 이어갑니다.",
+    });
     clearCurrentAnswerDraft();
     setAnswer("");
     setMessage("");
@@ -2268,7 +2406,8 @@ function App() {
       if (inputConfig.formatMessage && !currentNode.choiceQuestion) {
         const hasNumericFormat =
           /^[0-9]+$/.test(userAnswer) &&
-          (!inputConfig.maxLength || userAnswer.length === inputConfig.maxLength);
+          (!inputConfig.maxLength ||
+            userAnswer.length === inputConfig.maxLength);
 
         if (!hasNumericFormat) {
           setMessage(inputConfig.formatMessage);
@@ -2384,12 +2523,11 @@ function App() {
       <section className="completionNotice" role="status" aria-live="polite">
         <p>미션 완료</p>
         <strong>
-          단서 {completionNotice.completedMissionCount} / {missionNodes.length} 획득
+          단서 {completionNotice.completedMissionCount} / {missionNodes.length}{" "}
+          획득
         </strong>
         <span>{completionNotice.piece}</span>
-        {completionNotice.context && (
-          <small>{completionNotice.context}</small>
-        )}
+        {completionNotice.context && <small>{completionNotice.context}</small>}
       </section>
     );
   };
@@ -2398,9 +2536,13 @@ function App() {
     if (interludeNotice?.targetNodeId !== currentNode.id) return null;
 
     return (
-      <section className="interludeCompletionNotice" role="status" aria-live="polite">
-        <p>보조 관찰 완료</p>
-        <span>벽화 관찰 완료 · 네 번째 기록을 이어갑니다.</span>
+      <section
+        className="interludeCompletionNotice"
+        role="status"
+        aria-live="polite"
+      >
+        <p>{interludeNotice.title}</p>
+        <span>{interludeNotice.text}</span>
       </section>
     );
   };
@@ -2597,7 +2739,8 @@ function App() {
       <main className="page">
         {storageWarningVisible && (
           <p className="storageWarning" role="status">
-            현재 브라우저에서는 진행 상황을 저장할 수 없습니다. 페이지를 닫거나 새로고침하면 진행 내용이 사라질 수 있습니다.
+            현재 브라우저에서는 진행 상황을 저장할 수 없습니다. 페이지를 닫거나
+            새로고침하면 진행 내용이 사라질 수 있습니다.
           </p>
         )}
 
@@ -2613,7 +2756,10 @@ function App() {
                 className="headerNotebookTrigger"
                 onClick={() => setScreen("progress")}
               >
-                단서첩 <span>{completedMissionCount} / {missionNodes.length}</span>
+                단서첩{" "}
+                <span>
+                  {completedMissionCount} / {missionNodes.length}
+                </span>
               </button>
             </div>
             <div
@@ -2652,7 +2798,9 @@ function App() {
               <p>{currentNode.description}</p>
             </section>
 
-            <button className="primaryAction" onClick={goNextFlow}>{currentNode.buttonText}</button>
+            <button className="primaryAction" onClick={goNextFlow}>
+              {currentNode.buttonText}
+            </button>
 
             <button
               className="secondaryButton"
@@ -2688,7 +2836,8 @@ function App() {
               )}
 
               {currentNode.paragraphs.map((text, index) => {
-                const isCallout = currentNode.calloutParagraphIndexes?.includes(index);
+                const isCallout =
+                  currentNode.calloutParagraphIndexes?.includes(index);
 
                 return (
                   <p
@@ -2716,7 +2865,6 @@ function App() {
             <button className="primaryAction" onClick={goNextFlow}>
               {currentNode.buttonText || "다음 단서로 이동"}
             </button>
-
           </>
         )}
 
@@ -2726,11 +2874,15 @@ function App() {
             <h1>{currentNode.title}</h1>
 
             {currentNode.type === "interludeMission" && (
-              <p className="interludeDescription">{currentNode.interludeDescription}</p>
+              <p className="interludeDescription">
+                {currentNode.interludeDescription}
+              </p>
             )}
 
             {currentNode.transitionContext && (
-              <p className="transitionContext">{currentNode.transitionContext}</p>
+              <p className="transitionContext">
+                {currentNode.transitionContext}
+              </p>
             )}
 
             <section className="missionGoal" aria-label="현재 할 일">
@@ -2743,13 +2895,21 @@ function App() {
                   </div>
                 )}
                 <div>
-                  <dt>{isLocationDiscoveryMission ? "탐색 단서" : "현장 확인"}</dt>
+                  <dt>
+                    {isLocationDiscoveryMission ? "탐색 단서" : "현장 확인"}
+                  </dt>
                   <dd>{currentNode.goalSummary || currentMissionAction}</dd>
                 </div>
               </dl>
             </section>
 
-            <section className={currentNode.letterParagraphs ? "movementLetter" : "missionLocationSection"}>
+            <section
+              className={
+                currentNode.letterParagraphs
+                  ? "movementLetter"
+                  : "missionLocationSection"
+              }
+            >
               <p className="sectionLabel">Location Guide</p>
               <h2>이동 안내</h2>
 
@@ -3059,29 +3219,36 @@ function App() {
                   [임시] 다음 단계로
                 </button>
               )}
-
             </section>
-
           </>
         )}
 
         {currentNode.type === "ending" && (
           <>
-            <section className="endingHero">
-              <img src="/story7-poster.png" alt="" />
-              <div className="endingHeroOverlay">
-                <p className="eyebrow">ENDING</p>
+            {currentNode.endingPart === "a" ? (
+              <section className="endingHero">
+                <img src="/story7-poster.png" alt="" />
+                <div className="endingHeroOverlay">
+                  <p className="eyebrow">ENDING</p>
+                  <h1>{currentNode.title}</h1>
+                  <p className="endingHeroMeta">
+                    <span>조사 완료</span>
+                    <strong>
+                      {completedMissionCount} / {missionNodes.length}
+                    </strong>
+                  </p>
+                </div>
+              </section>
+            ) : (
+              <>
+                <p className="eyebrow">마지막 기록</p>
                 <h1>{currentNode.title}</h1>
-                <p className="endingHeroMeta">
-                  <span>조사 완료</span>
-                  <strong>
-                    {completedMissionCount} / {missionNodes.length}
-                  </strong>
-                </p>
-              </div>
-            </section>
+              </>
+            )}
 
             {renderCompletionNotice()}
+
+            {renderInterludeNotice()}
 
             <section className="endingDocument" aria-label="결말 기록">
               <p className="sectionLabel">Final Record</p>
@@ -3095,10 +3262,15 @@ function App() {
               ))}
             </section>
 
+            {currentNode.transitionContext && (
+              <p className="transitionContext">
+                {currentNode.transitionContext}
+              </p>
+            )}
+
             <button className="endingAction" onClick={goNextFlow}>
               {currentNode.buttonText || "클리어 인증 보기"}
             </button>
-
           </>
         )}
       </main>
@@ -3175,7 +3347,9 @@ function App() {
           </div>
         </section>
 
-        <button className="primaryAction" onClick={() => setScreen("flow")}>조사로 돌아가기</button>
+        <button className="primaryAction" onClick={() => setScreen("flow")}>
+          조사로 돌아가기
+        </button>
       </main>
     );
   }
@@ -3241,9 +3415,7 @@ function App() {
         <section className="rewardBrief">
           <p className="sectionLabel">Reward</p>
           <h2>보상 안내</h2>
-          <p>
-            메리골드에서 사용할 수 있는 10% 할인 쿠폰이 지급되었습니다.
-          </p>
+          <p>메리골드에서 사용할 수 있는 10% 할인 쿠폰이 지급되었습니다.</p>
         </section>
 
         <button className="rewardAction" onClick={() => setScreen("coupon")}>
@@ -3289,7 +3461,11 @@ function App() {
   }
 
   if (screen === "coupon") {
-    const issuedAt = completionTimestamp || (startTime && clearTimeSeconds ? startTime + clearTimeSeconds * 1000 : null);
+    const issuedAt =
+      completionTimestamp ||
+      (startTime && clearTimeSeconds
+        ? startTime + clearTimeSeconds * 1000
+        : null);
     const couponExpireDateText = getCouponExpireDateText(issuedAt);
 
     return (
@@ -3307,8 +3483,8 @@ function App() {
           </div>
 
           <p className="couponIntro">
-            메리골드에서 사용할 수 있는 10% 할인 쿠폰입니다.
-            직원에게 이 쿠폰 화면을 보여주세요.
+            메리골드에서 사용할 수 있는 10% 할인 쿠폰입니다. 직원에게 이 쿠폰
+            화면을 보여주세요.
           </p>
 
           <dl className="couponInfoBox">
@@ -3364,10 +3540,7 @@ function App() {
 
         <RankingBoard />
 
-        <button
-          className="secondaryButton"
-          onClick={() => setScreen("clear")}
-        >
+        <button className="secondaryButton" onClick={() => setScreen("clear")}>
           클리어 화면으로
         </button>
       </main>

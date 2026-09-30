@@ -122,26 +122,22 @@ function sanitizePuzzleProgressByNode(value) {
     }
     if (node.puzzleType === "stitch-connect" && isRecord(rawNode.stitch)) {
       const pointIds = new Set(node.stitchPoints.map((point) => point.id));
-      const correctKeys = new Set(
-        node.stitchPairs.map(([a, b]) => getStitchPairKey(a, b)),
-      );
-      const seenKeys = new Set();
-      const connections = Array.isArray(rawNode.stitch.connections)
-        ? rawNode.stitch.connections.reduce((valid, pair) => {
-            if (
-              !Array.isArray(pair) ||
-              pair.length !== 2 ||
-              !pointIds.has(pair[0]) ||
-              !pointIds.has(pair[1])
-            )
-              return valid;
-            const key = getStitchPairKey(pair[0], pair[1]);
-            if (!correctKeys.has(key) || seenKeys.has(key)) return valid;
-            seenKeys.add(key);
-            valid.push([pair[0], pair[1]]);
-            return valid;
-          }, [])
-        : [];
+      const connections = [];
+      if (Array.isArray(rawNode.stitch.connections)) {
+        // Keep only the uninterrupted ordered, directed prefix of the solution.
+        for (const pair of rawNode.stitch.connections) {
+          const expectedPair = node.stitchPairs[connections.length];
+          if (
+            !expectedPair ||
+            !Array.isArray(pair) ||
+            pair.length !== 2 ||
+            pair[0] !== expectedPair[0] ||
+            pair[1] !== expectedPair[1]
+          )
+            break;
+          connections.push([pair[0], pair[1]]);
+        }
+      }
       const connectedIds = new Set(connections.flat());
       const selectedPointId =
         pointIds.has(rawNode.stitch.selectedPointId) &&
@@ -1296,8 +1292,8 @@ function TileSwapPuzzle({
   );
 }
 
-function getStitchPairKey(a, b) {
-  return [a, b].sort().join("__");
+function getDirectedStitchPairKey(from, to) {
+  return `${from}__${to}`;
 }
 
 function StitchConnectPuzzle({
@@ -1314,12 +1310,6 @@ function StitchConnectPuzzle({
       return acc;
     }, {});
   }, [points]);
-
-  const correctPairKeys = useMemo(() => {
-    return new Set(
-      correctPairs.map(([fromId, toId]) => getStitchPairKey(fromId, toId)),
-    );
-  }, [correctPairs]);
 
   const [wrongPairKey, setWrongPairKey] = useState("");
   const [notice, setNotice] = useState("");
@@ -1373,7 +1363,7 @@ function StitchConnectPuzzle({
     if (!fromPoint || !toPoint) return;
 
     if (fromPoint.side === toPoint.side) {
-      setWrongPairKey(getStitchPairKey(selectedPointId, pointId));
+      setWrongPairKey(getDirectedStitchPairKey(selectedPointId, pointId));
       setNotice("같은 쪽 구멍끼리는 이을 수 없습니다.");
       updateProgress({ selectedPointId: null });
 
@@ -1384,11 +1374,15 @@ function StitchConnectPuzzle({
       return;
     }
 
-    const pairKey = getStitchPairKey(selectedPointId, pointId);
+    const pairKey = getDirectedStitchPairKey(selectedPointId, pointId);
+    const expectedPair = correctPairs[connections.length];
 
-    if (!correctPairKeys.has(pairKey)) {
+    if (
+      !expectedPair ||
+      pairKey !== getDirectedStitchPairKey(expectedPair[0], expectedPair[1])
+    ) {
       setWrongPairKey(pairKey);
-      setNotice("이 연결은 매듭에 맞지 않습니다. 다른 구멍을 선택하세요.");
+      setNotice("실의 순서나 방향이 맞지 않습니다. 다시 이어주세요.");
       updateProgress({ selectedPointId: null });
 
       setTimeout(() => {

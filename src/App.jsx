@@ -10,6 +10,8 @@ const SAVE_KEY = "royalLetterEscapeSave";
 const OLD_SAVE_KEY = "marigoldEscapeSave";
 const FLOW_SAVE_VERSION = 3;
 const PREVIOUS_FLOW_SAVE_VERSION = 2;
+// Set to true to restore the coupon UI and saved coupon screen.
+const ENABLE_COUPON = false;
 const LEGACY_STORY_4_FLOW_INDEX = 7;
 const LEGACY_STORY_7_FLOW_INDEX = 13;
 const PREVIOUS_STORY_7_FLOW_INDEX = 15;
@@ -998,6 +1000,8 @@ function getCouponExpireDateText(issuedAt) {
 }
 
 function sanitizeScreen(screen) {
+  if (!ENABLE_COUPON && screen === "coupon") return "clear";
+
   const allowedScreens = [
     "poster",
     "landing",
@@ -3383,15 +3387,19 @@ function App() {
           )}
         </section>
 
-        <section className="rewardBrief">
-          <p className="sectionLabel">Reward</p>
-          <h2>보상 안내</h2>
-          <p>메리골드에서 사용할 수 있는 10% 할인 쿠폰이 지급되었습니다.</p>
-        </section>
+        {ENABLE_COUPON && (
+          <>
+            <section className="rewardBrief">
+              <p className="sectionLabel">Reward</p>
+              <h2>보상 안내</h2>
+              <p>메리골드에서 사용할 수 있는 10% 할인 쿠폰이 지급되었습니다.</p>
+            </section>
 
-        <button className="rewardAction" onClick={() => setScreen("coupon")}>
-          10% 할인 쿠폰 확인하기
-        </button>
+            <button className="rewardAction" onClick={() => setScreen("coupon")}>
+              10% 할인 쿠폰 확인하기
+            </button>
+          </>
+        )}
 
         <section className="truthDocument">
           <p className="sectionLabel">Final Letter</p>
@@ -3424,6 +3432,13 @@ function App() {
           </ul>
         </section>
 
+        <button
+          className="secondaryButton"
+          onClick={() => setScreen("leaderboard")}
+        >
+          오늘의 조사 랭킹 보기
+        </button>
+
         <button className="resetAction" onClick={handleResetRequest}>
           처음부터 다시 하기
         </button>
@@ -3431,7 +3446,7 @@ function App() {
     );
   }
 
-  if (screen === "coupon") {
+  if (ENABLE_COUPON && screen === "coupon") {
     const issuedAt =
       completionTimestamp ||
       (startTime && clearTimeSeconds
